@@ -1,0 +1,157 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "P2P Crypto Exchange",
+      "archetype": "The Performance Pro (Adapted for Fintech)",
+      "tone": "Trustworthy, Fast, Precision, Secure",
+      "persona": "E1",
+      "theme_mode": "light"
+    },
+    "typography": {
+      "headings": {
+        "family": "Plus Jakarta Sans, sans-serif",
+        "weights": ["600", "700", "800"],
+        "usage": "Headings, Hero Titles, Big Stats",
+        "letter_spacing": "-0.02em"
+      },
+      "body": {
+        "family": "DM Sans, sans-serif",
+        "weights": ["400", "500"],
+        "usage": "Paragraphs, UI Labels, Tables",
+        "line_height": "1.6"
+      },
+      "code": {
+        "family": "JetBrains Mono, monospace",
+        "usage": "Wallet Addresses, Transaction IDs"
+      }
+    },
+    "colors": {
+      "palette": {
+        "background": {
+          "default": "#FFFFFF",
+          "secondary": "#F8FAFC",
+          "card": "#FFFFFF",
+          "subtle": "#F1F5F9"
+        },
+        "foreground": {
+          "default": "#0F172A",
+          "muted": "#64748B",
+          "inverse": "#FFFFFF"
+        },
+        "primary": {
+          "default": "#2563EB",
+          "hover": "#1D4ED8",
+          "foreground": "#FFFFFF",
+          "subtle": "#EFF6FF"
+        },
+        "accent": {
+          "success": "#10B981",
+          "error": "#EF4444",
+          "warning": "#F59E0B",
+          "info": "#3B82F6"
+        },
+        "border": {
+          "default": "#E2E8F0",
+          "active": "#CBD5E1"
+        }
+      },
+      "rules": [
+        "Use Blue (#2563EB) only for primary actions and key highlights.",
+        "Never use pure black (#000000); use Slate-900 (#0F172A).",
+        "Backgrounds should be White or very light Slate (#F8FAFC).",
+        "Borders should be subtle (#E2E8F0) unless active/focused."
+      ]
+    },
+    "spacing": {
+      "scale": "Generous (2x standard)",
+      "container_padding": "p-6 md:p-8 lg:p-12",
+      "section_gap": "gap-8 md:gap-12",
+      "grid_gap": "gap-6"
+    },
+    "layout": {
+      "landing_page": {
+        "type": "Mode A: The Tetris Grid",
+        "description": "Asymmetrical grid with varied span sizes. Hero section dominating 2/3 width.",
+        "container_width": "max-w-7xl mx-auto"
+      },
+      "dashboard": {
+        "type": "Mode B: High Density Grid",
+        "description": "Dense, data-focused. Sidebar navigation. 4-column grid for widgets.",
+        "sidebar_width": "w-64"
+      }
+    },
+    "components": {
+      "buttons": {
+        "style": "Pill-shaped or Sharp Rounded (rounded-lg)",
+        "interaction": "transform hover:-translate-y-0.5 transition-all duration-200",
+        "shadow": "shadow-sm hover:shadow-md"
+      },
+      "cards": {
+        "style": "Flat with 1px border (#E2E8F0), no shadow by default.",
+        "hover": "hover:border-blue-200 hover:shadow-lg transition-all duration-300",
+        "padding": "p-6"
+      },
+      "inputs": {
+        "style": "bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg h-12",
+        "label_style": "text-sm font-medium text-slate-700 mb-2 block"
+      }
+    },
+    "visual_enhancers": {
+      "gradients": "Subtle top-down fades (e.g., bg-gradient-to-b from-slate-50 to-white). NO heavy diagonals.",
+      "glassmorphism": "Use sparingly on sticky headers: backdrop-blur-xl bg-white/80 border-b border-slate-200/50.",
+      "shadows": "Soft, diffuse shadows (shadow-xl) for floating elements (modals, dropdowns).",
+      "borders": "1px solid #E2E8F0. Use 'The Tracing Beam' effect for pricing/active states."
+    },
+    "assets": {
+      "icons": {
+        "library": "lucide-react",
+        "style": "Stroke width 1.5px or 2px. Blue-600 for active, Slate-400 for inactive."
+      },
+      "images": {
+        "hero": {
+          "url": "https://images.unsplash.com/photo-1726690359537-eee80ac30c41",
+          "alt": "Professional African trader using mobile app",
+          "style": "Object-cover, rounded-2xl"
+        },
+        "crypto_coins": {
+          "url": "https://images.unsplash.com/photo-1666029238899-c45ab25ebfe5",
+          "alt": "Crypto coins (BTC, ETH, USDT)",
+          "style": "3D render style, clean background"
+        },
+        "security": {
+          "url": "https://images.unsplash.com/photo-1666568026012-f76414b6faac",
+          "alt": "Security Shield",
+          "style": "Minimalist, abstract"
+        }
+      }
+    },
+    "motion": {
+      "transitions": "transition-all duration-300 ease-out",
+      "hover_effects": "Scale 1.02 on cards. Color shift on buttons.",
+      "page_load": "Fade in + Slide up (y: 20 -> y: 0, opacity: 0 -> 1)."
+    },
+    "accessibility": {
+      "contrast": "Ensure text is Slate-900 on White, or White on Blue-600.",
+      "focus_states": "Visible focus rings (ring-2 ring-blue-500 ring-offset-2).",
+      "aria": "Use aria-labels on icon-only buttons."
+    },
+    "instructions_to_main_agent": [
+      "Follow the 'Performance Pro' archetype: Clean, Fast, White & Blue.",
+      "Do NOT use standard 'Bootstrap' layouts. Use the 'Bento' grid strategy.",
+      "For the Landing Page: Use large typography (text-5xl+) and asymmetry.",
+      "For the Dashboard: Focus on data density and clarity. No unnecessary whitespace in data tables.",
+      "Use 'sonner' for toast notifications.",
+      "Implement the 'Tracing Beam' effect on the 'Buy/Sell' active tabs.",
+      "Use 'lucide-react' for all icons.",
+      "Ensure all interactive elements have 'data-testid' for testing."
+    ],
+    "universal_guidelines": [
+      "Avoid 'AI Slop': No generic centered layouts, no gradient text unless specified.",
+      "Micro-animations are mandatory for every interaction.",
+      "Use 2-3x more spacing than typical (p-8 instead of p-4) for the landing page.",
+      "Never use pure black; use Slate-900.",
+      "Components must use named exports.",
+      "Pages must use default exports."
+    ]
+  }
+}
