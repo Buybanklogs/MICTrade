@@ -10,10 +10,8 @@ const Landing = () => {
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">SF</span>
-            </div>
-            <span className="text-xl font-bold text-slate-900">SFPF Global</span>
+            <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
+            <span className="text-xl font-bold text-slate-900">MIC Trades</span>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-slate-600 hover:text-blue-600 transition">Features</a>
@@ -37,7 +35,7 @@ const Landing = () => {
           <div>
             <div className="inline-block bg-blue-50 text-blue-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Shield className="inline w-4 h-4 mr-2" />
-              Trusted P2P Crypto Exchange
+              Trusted P2P Crypto Platform
             </div>
             <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
               Trade Crypto with <span className="text-blue-600">Naira</span> Instantly
@@ -84,7 +82,7 @@ const Landing = () => {
       <section id="features" className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">Why Choose SFPF Global?</h2>
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">Why Choose MIC Trades?</h2>
             <p className="text-xl text-slate-600">Fast, secure, and reliable crypto trading</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -153,7 +151,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="max-w-7xl mx-auto px-6 text-center text-slate-600">
-          <p>© 2025 SFPF Global. All rights reserved.</p>
+          <p>© 2025 MIC Trades. All rights reserved.</p>
         </div>
       </footer>
     </div>

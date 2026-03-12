@@ -155,7 +155,7 @@ def init_database():
                 1,
                 'First Bank of Nigeria',
                 '1234567890',
-                'SFPF Global Limited',
+                'MIC Trades Limited',
                 '{"BTC": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", "ETH": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb", "USDT": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"}'
             )
         """)
@@ -165,7 +165,7 @@ def init_database():
         admin_password = get_password_hash("admin123")
         cursor.execute("""
             INSERT OR IGNORE INTO users (id, email, password_hash, firstname, lastname, username, phone, date_of_birth, role)
-            VALUES (1, 'admin@sfpf.com', ?, 'Admin', 'User', 'admin', '1234567890', '1990-01-01', 'admin')
+            VALUES (1, 'admin@mictrades.com', ?, 'Admin', 'User', 'admin', '1234567890', '1990-01-01', 'admin')
         """, (admin_password,))
         
         conn.commit()

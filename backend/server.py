@@ -58,7 +58,7 @@ async def get_current_user(request: Request):
         cursor = conn.cursor()
         cursor.execute("""
             SELECT id, email, firstname, lastname, username, role, is_active
-            FROM users WHERE id = %s
+            FROM users WHERE id = ?
         """, (user_id,))
         user = cursor.fetchone()
         
@@ -125,12 +125,12 @@ async def register(user: UserRegister):
         cursor = conn.cursor()
         
         # Check if email exists
-        cursor.execute("SELECT id FROM users WHERE email = %s", (user.email.lower(),))
+        cursor.execute("SELECT id FROM users WHERE email = ?", (user.email.lower(),))
         if cursor.fetchone():
             raise HTTPException(status_code=400, detail="Email already registered")
         
         # Check if username exists
-        cursor.execute("SELECT id FROM users WHERE username = %s", (user.username.lower(),))
+        cursor.execute("SELECT id FROM users WHERE username = ?", (user.username.lower(),))
         if cursor.fetchone():
             raise HTTPException(status_code=400, detail="Username already taken")
         
@@ -140,7 +140,7 @@ async def register(user: UserRegister):
         # Insert user
         cursor.execute("""
             INSERT INTO users (email, password_hash, firstname, lastname, username, phone, date_of_birth, role)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id
         """, (
             user.email.lower(),
@@ -178,7 +178,7 @@ async def login(request: Request, user: UserLogin):
         cursor = conn.cursor()
         cursor.execute("""
             SELECT id, password_hash, role, is_active
-            FROM users WHERE email = %s
+            FROM users WHERE email = ?
         """, (user.email.lower(),))
         
         db_user = cursor.fetchone()
@@ -304,7 +304,7 @@ async def create_trade(trade: TradeCreate, current_user: dict = Depends(get_curr
         # Get current rate
         cursor.execute("""
             SELECT buy_rate, sell_rate FROM crypto_rates
-            WHERE crypto_symbol = %s
+            WHERE crypto_symbol = ?
         """, (trade.crypto_symbol,))
         
         rate_data = cursor.fetchone()
@@ -334,7 +334,7 @@ async def create_trade(trade: TradeCreate, current_user: dict = Depends(get_curr
         # Insert trade
         cursor.execute("""
             INSERT INTO trades (user_id, trade_type, crypto_symbol, amount, rate_used, total_ngn, payment_details, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, 'pending')
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
             RETURNING id, created_at
         """, (
             current_user["id"],
@@ -382,7 +382,7 @@ async def get_user_trades(current_user: dict = Depends(get_current_user)):
         cursor.execute("""
             SELECT id, trade_type, crypto_symbol, amount, rate_used, total_ngn, status, created_at, completed_at
             FROM trades
-            WHERE user_id = %s
+            WHERE user_id = ?
             ORDER BY created_at DESC
         """, (current_user["id"],))
         
@@ -416,7 +416,7 @@ async def get_trade(trade_id: int, current_user: dict = Depends(get_current_user
         cursor.execute("""
             SELECT id, trade_type, crypto_symbol, amount, rate_used, total_ngn, payment_details, status, created_at, completed_at
             FROM trades
-            WHERE id = %s AND user_id = %s
+            WHERE id = ? AND user_id = ?
         """, (trade_id, current_user["id"]))
         
         trade = cursor.fetchone()
@@ -451,7 +451,7 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
         cursor = conn.cursor()
         cursor.execute("""
             SELECT email, firstname, lastname, username, phone, date_of_birth, bank_account, crypto_wallets
-            FROM users WHERE id = %s
+            FROM users WHERE id = ?
         """, (current_user["id"],))
         
         user = cursor.fetchone()
@@ -486,11 +486,11 @@ async def update_payment_info(payment_info: PaymentInfoUpdate, current_user: dic
         params = []
         
         if payment_info.bank_account:
-            updates.append("bank_account = %s")
+            updates.append("bank_account = ?")
             params.append(json.dumps(payment_info.bank_account))
         
         if payment_info.crypto_wallets:
-            updates.append("crypto_wallets = %s")
+            updates.append("crypto_wallets = ?")
             params.append(json.dumps(payment_info.crypto_wallets))
         
         if updates:
@@ -498,7 +498,7 @@ async def update_payment_info(payment_info: PaymentInfoUpdate, current_user: dic
             cursor.execute(f"""
                 UPDATE users
                 SET {', '.join(updates)}, updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
+                WHERE id = ?
             """, tuple(params))
             conn.commit()
         
@@ -519,7 +519,7 @@ async def create_ticket(ticket: SupportTicketCreate, current_user: dict = Depend
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO support_tickets (user_id, subject, message, status)
-            VALUES (%s, %s, %s, 'open')
+            VALUES (?, ?, ?, 'open')
             RETURNING id, created_at
         """, (current_user["id"], ticket.subject, ticket.message))
         
@@ -546,7 +546,7 @@ async def get_tickets(current_user: dict = Depends(get_current_user)):
         cursor.execute("""
             SELECT id, subject, message, status, admin_response, created_at, updated_at
             FROM support_tickets
-            WHERE user_id = %s
+            WHERE user_id = ?
             ORDER BY created_at DESC
         """, (current_user["id"],))
         
@@ -589,7 +589,7 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
                        t.amount, t.rate_used, t.total_ngn, t.status, t.created_at, t.completed_at
                 FROM trades t
                 JOIN users u ON t.user_id = u.id
-                WHERE t.status = %s
+                WHERE t.status = ?
                 ORDER BY t.created_at DESC
             """, (status,))
         else:
@@ -634,7 +634,7 @@ async def admin_approve_trade(trade_id: int, admin: dict = Depends(require_admin
         cursor.execute("""
             UPDATE trades
             SET status = 'completed', completed_at = CURRENT_TIMESTAMP
-            WHERE id = %s AND status = 'pending'
+            WHERE id = ? AND status = 'pending'
             RETURNING id
         """, (trade_id,))
         
@@ -665,7 +665,7 @@ async def admin_cancel_trade(trade_id: int, admin: dict = Depends(require_admin)
         cursor.execute("""
             UPDATE trades
             SET status = 'cancelled'
-            WHERE id = %s AND status = 'pending'
+            WHERE id = ? AND status = 'pending'
             RETURNING id
         """, (trade_id,))
         
@@ -693,8 +693,8 @@ async def admin_update_rates(rate: RateUpdate, admin: dict = Depends(require_adm
         cursor = conn.cursor()
         cursor.execute("""
             UPDATE crypto_rates
-            SET buy_rate = %s, sell_rate = %s, updated_at = CURRENT_TIMESTAMP, updated_by_admin_id = %s
-            WHERE crypto_symbol = %s
+            SET buy_rate = ?, sell_rate = ?, updated_at = CURRENT_TIMESTAMP, updated_by_admin_id = ?
+            WHERE crypto_symbol = ?
         """, (rate.buy_rate, rate.sell_rate, admin["id"], rate.crypto_symbol))
         
         conn.commit()

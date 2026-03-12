@@ -117,7 +117,7 @@ curl https://your-backend.railway.app/api/health
 ### 2. Create Admin Account
 
 Default admin credentials are created automatically:
-- Email: `admin@sfpf.com`
+- Email: `admin@mictrades.com`
 - Password: `admin123`
 
 **IMPORTANT**: Change this password immediately after first login!

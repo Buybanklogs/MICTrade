@@ -24,10 +24,8 @@ const Dashboard = () => {
       <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200">
         <div className="p-6">
           <div className="flex items-center space-x-2 mb-8">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">SF</span>
-            </div>
-            <span className="text-xl font-bold">SFPF Global</span>
+            <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
+            <span className="text-xl font-bold">MIC Trades</span>
           </div>
 
           <nav className="space-y-2">

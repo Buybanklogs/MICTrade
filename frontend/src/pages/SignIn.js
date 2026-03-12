@@ -42,10 +42,8 @@ const SignIn = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">SF</span>
-            </div>
-            <span className="text-2xl font-bold text-slate-900">SFPF Global</span>
+            <img src="/logo.png" alt="MIC Trades" className="h-12 w-auto" />
+            <span className="text-2xl font-bold text-slate-900">MIC Trades</span>
           </Link>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome Back</h1>
           <p className="text-slate-600">Sign in to your account</p>
