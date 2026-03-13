@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, MessageCircle, Clock, CheckCircle } from 'lucide-react';
+import { Plus, MessageCircle, Clock, CheckCircle, ChevronLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -23,9 +24,10 @@ const Support = () => {
   const fetchTickets = async () => {
     try {
       const response = await support.getTickets();
-      setTickets(response.data.tickets);
+      setTickets(response.data.tickets || []);
     } catch (error) {
-      toast.error('Failed to fetch tickets');
+      console.error('Failed to fetch tickets:', error);
+      setTickets([]);
     } finally {
       setLoading(false);
     }
@@ -67,15 +69,21 @@ const Support = () => {
   return (
     <div className="min-h-screen bg-slate-50 p-4 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Support</h1>
-            <p className="text-slate-600">Get help from our support team</p>
+        <div className="mb-8">
+          <Link to="/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4 font-medium">
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Back to Dashboard
+          </Link>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">Support</h1>
+              <p className="text-slate-600">Get help from our support team</p>
+            </div>
+            <Button onClick={() => setShowNewTicket(true)} className="mt-4 lg:mt-0" data-testid="new-ticket-btn">
+              <Plus className="w-4 h-4 mr-2" />
+              New Ticket
+            </Button>
           </div>
-          <Button onClick={() => setShowNewTicket(true)} className="mt-4 lg:mt-0">
-            <Plus className="w-4 h-4 mr-2" />
-            New Ticket
-          </Button>
         </div>
 
         {loading ? (

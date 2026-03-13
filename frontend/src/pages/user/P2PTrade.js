@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowDownUp, Plus, Check } from 'lucide-react';
+import { ArrowDownUp, Plus, Check, ChevronLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -122,7 +123,13 @@ const P2PTrade = () => {
   return (
     <div className="min-h-screen bg-slate-50 p-4 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-slate-900 mb-8">P2P Crypto Trading</h1>
+        <div className="mb-8">
+          <Link to="/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4 font-medium">
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Back to Dashboard
+          </Link>
+          <h1 className="text-3xl font-bold text-slate-900">P2P Crypto Trading</h1>
+        </div>
 
         {!tradeResult ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:p-8">

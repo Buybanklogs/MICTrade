@@ -144,11 +144,18 @@ def init_database():
                 subject VARCHAR(255) NOT NULL,
                 message TEXT NOT NULL,
                 status VARCHAR(20) DEFAULT 'open',
+                admin_response TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+        
+        # Add admin_response column if it doesn't exist (migration for existing DBs)
+        try:
+            cursor.execute("ALTER TABLE support_tickets ADD COLUMN admin_response TEXT")
+        except:
+            pass  # Column already exists
         
         # Support ticket replies table
         cursor.execute("""

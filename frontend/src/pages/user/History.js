@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle, ChevronLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { trades } from '../../lib/api';
 
@@ -57,6 +58,10 @@ const History = () => {
     <div className="min-h-screen bg-slate-50 p-4 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
+          <Link to="/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4 font-medium">
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Back to Dashboard
+          </Link>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Trade History</h1>
           <p className="text-slate-600">View all your past transactions</p>
         </div>

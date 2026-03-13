@@ -450,7 +450,7 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT email, firstname, lastname, username, phone, date_of_birth, bank_account, crypto_wallets
+            SELECT email, firstname, lastname, username, phone, date_of_birth
             FROM users WHERE id = ?
         """, (current_user["id"],))
         
@@ -458,7 +458,6 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        import json
         return {
             "success": True,
             "profile": {
@@ -467,16 +466,18 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
                 "lastname": user[2],
                 "username": user[3],
                 "phone": user[4],
-                "date_of_birth": user[5] if user[5] else None,
-                "bank_account": json.loads(user[6]) if user[6] else None,
-                "crypto_wallets": json.loads(user[7]) if user[7] else None
+                "date_of_birth": str(user[5]) if user[5] else None
             }
         }
     finally:
         release_db_connection(conn)
 
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
 @app.put("/api/user/change-password")
-async def change_password(current_password: str, new_password: str, current_user: dict = Depends(get_current_user)):
+async def change_password(password_data: PasswordChange, current_user: dict = Depends(get_current_user)):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -485,11 +486,14 @@ async def change_password(current_password: str, new_password: str, current_user
         cursor.execute("SELECT password_hash FROM users WHERE id = ?", (current_user["id"],))
         user = cursor.fetchone()
         
-        if not user or not verify_password(current_password, user[0]):
+        if not user or not verify_password(password_data.current_password, user[0]):
             raise HTTPException(status_code=400, detail="Current password is incorrect")
         
+        if len(password_data.new_password) < 8:
+            raise HTTPException(status_code=400, detail="New password must be at least 8 characters")
+        
         # Update password
-        new_hash = get_password_hash(new_password)
+        new_hash = get_password_hash(password_data.new_password)
         cursor.execute("UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", 
                       (new_hash, current_user["id"]))
         conn.commit()
@@ -617,7 +621,8 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
         if status:
             cursor.execute("""
                 SELECT t.id, t.user_id, u.email, u.firstname, u.lastname, t.trade_type, t.crypto_symbol,
-                       t.amount, t.rate_used, t.total_ngn, t.status, t.created_at, t.completed_at
+                       t.amount, t.rate_used, t.total_ngn, t.status, t.created_at, t.completed_at,
+                       t.user_wallet_address, t.user_bank_account_id, t.platform_payment_details
                 FROM trades t
                 JOIN users u ON t.user_id = u.id
                 WHERE t.status = ?
@@ -626,7 +631,8 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
         else:
             cursor.execute("""
                 SELECT t.id, t.user_id, u.email, u.firstname, u.lastname, t.trade_type, t.crypto_symbol,
-                       t.amount, t.rate_used, t.total_ngn, t.status, t.created_at, t.completed_at
+                       t.amount, t.rate_used, t.total_ngn, t.status, t.created_at, t.completed_at,
+                       t.user_wallet_address, t.user_bank_account_id, t.platform_payment_details
                 FROM trades t
                 JOIN users u ON t.user_id = u.id
                 ORDER BY t.created_at DESC
@@ -634,25 +640,53 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
         
         trades = cursor.fetchall()
         
+        result = []
+        for t in trades:
+            trade_data = {
+                "id": t[0],
+                "user_id": t[1],
+                "user_email": t[2],
+                "user_name": f"{t[3]} {t[4]}",
+                "trade_type": t[5],
+                "crypto_symbol": t[6],
+                "amount": float(t[7]),
+                "rate_used": float(t[8]),
+                "total_ngn": float(t[9]),
+                "status": t[10],
+                "created_at": t[11] if t[11] else None,
+                "completed_at": t[12] if t[12] else None,
+                "user_wallet_address": t[13],
+                "user_bank_account": None,
+                "platform_payment_details": None
+            }
+            
+            # Parse platform payment details
+            if t[15]:
+                import json
+                try:
+                    trade_data["platform_payment_details"] = json.loads(t[15])
+                except:
+                    pass
+            
+            # Get user bank account details for sell trades
+            if t[5] == "sell" and t[14]:
+                cursor.execute("""
+                    SELECT bank_name, account_number, account_name
+                    FROM user_payment_methods WHERE id = ?
+                """, (t[14],))
+                bank = cursor.fetchone()
+                if bank:
+                    trade_data["user_bank_account"] = {
+                        "bank_name": bank[0],
+                        "account_number": bank[1],
+                        "account_name": bank[2]
+                    }
+            
+            result.append(trade_data)
+        
         return {
             "success": True,
-            "trades": [
-                {
-                    "id": t[0],
-                    "user_id": t[1],
-                    "user_email": t[2],
-                    "user_name": f"{t[3]} {t[4]}",
-                    "trade_type": t[5],
-                    "crypto_symbol": t[6],
-                    "amount": float(t[7]),
-                    "rate_used": float(t[8]),
-                    "total_ngn": float(t[9]),
-                    "status": t[10],
-                    "created_at": t[11] if t[11] else None,
-                    "completed_at": t[12] if t[12] else None
-                }
-                for t in trades
-            ]
+            "trades": result
         }
     finally:
         release_db_connection(conn)
@@ -751,21 +785,72 @@ async def admin_get_users(admin: dict = Depends(require_admin)):
         
         users = cursor.fetchall()
         
+        result = []
+        for u in users:
+            user_data = {
+                "id": u[0],
+                "email": u[1],
+                "firstname": u[2],
+                "lastname": u[3],
+                "username": u[4],
+                "phone": u[5],
+                "role": u[6],
+                "is_active": u[7],
+                "created_at": u[8] if u[8] else None,
+                "bank_accounts": []
+            }
+            
+            # Get user's bank accounts
+            cursor.execute("""
+                SELECT id, bank_name, account_number, account_name, is_default
+                FROM user_payment_methods WHERE user_id = ?
+            """, (u[0],))
+            banks = cursor.fetchall()
+            user_data["bank_accounts"] = [
+                {
+                    "id": b[0],
+                    "bank_name": b[1],
+                    "account_number": b[2],
+                    "account_name": b[3],
+                    "is_default": bool(b[4])
+                }
+                for b in banks
+            ]
+            
+            result.append(user_data)
+        
         return {
             "success": True,
-            "users": [
+            "users": result
+        }
+    finally:
+        release_db_connection(conn)
+
+@app.get("/api/admin/users/{user_id}/bank-accounts")
+async def admin_get_user_bank_accounts(user_id: int, admin: dict = Depends(require_admin)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, bank_name, account_number, account_name, is_default, created_at
+            FROM user_payment_methods WHERE user_id = ?
+            ORDER BY is_default DESC, created_at DESC
+        """, (user_id,))
+        
+        banks = cursor.fetchall()
+        
+        return {
+            "success": True,
+            "bank_accounts": [
                 {
-                    "id": u[0],
-                    "email": u[1],
-                    "firstname": u[2],
-                    "lastname": u[3],
-                    "username": u[4],
-                    "phone": u[5],
-                    "role": u[6],
-                    "is_active": u[7],
-                    "created_at": u[8] if u[8] else None
+                    "id": b[0],
+                    "bank_name": b[1],
+                    "account_number": b[2],
+                    "account_name": b[3],
+                    "is_default": bool(b[4]),
+                    "created_at": b[5]
                 }
-                for u in users
+                for b in banks
             ]
         }
     finally:
