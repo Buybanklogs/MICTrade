@@ -7,8 +7,8 @@ MIC Trades is a P2P cryptocurrency trading web application that enables users to
 
 ### Technology Stack
 - **Frontend:** React.js with Tailwind CSS and Shadcn/UI components
-- **Backend:** Python FastAPI
-- **Database:** SQLite (local), PostgreSQL-ready for Railway deployment
+- **Backend:** Python FastAPI (PostgreSQL-compatible)
+- **Database:** SQLite (local), PostgreSQL (production/Railway)
 - **Authentication:** JWT-based with HTTP-only cookies
 - **External APIs:** CoinGecko API for live market data
 
@@ -26,7 +26,7 @@ BTC, ETH, USDT, BNB, SOL, USDC, TRX, XRP, ADA, LTC, BCH, TON
 
 ## Implementation Status
 
-### ✅ COMPLETED FEATURES (March 13, 2026)
+### ✅ COMPLETED - Phase 1: Core Features (March 13, 2026)
 
 #### User Features
 - [x] User Registration & Login with JWT authentication
@@ -44,28 +44,53 @@ BTC, ETH, USDT, BNB, SOL, USDC, TRX, XRP, ADA, LTC, BCH, TON
 #### Admin Features
 - [x] Admin Login with role-based access
 - [x] Admin Dashboard with site statistics
-- [x] Trade Approval Panel with:
-  - View all trades with filters
-  - Trade details modal showing user payout info:
-    - Bank account for SELL trades
-    - Wallet address for BUY trades
-  - Approve/Cancel actions
+- [x] Trade Approval Panel with payout details
 - [x] Rate Management (view/update rates for all 12 cryptos)
 - [x] User Management with expandable bank accounts view
 - [x] Support Ticket management (view, reply, close)
+
+### ✅ COMPLETED - Phase 2: PostgreSQL & Railway Compatibility (March 13, 2026)
+
+#### Database Compatibility
+- [x] Dual database support (SQLite local / PostgreSQL production)
+- [x] PostgreSQL-compatible schema with SERIAL PRIMARY KEY
+- [x] PostgreSQL connection pooling with psycopg2
+- [x] Automatic database type detection via DATABASE_URL
+- [x] Parameter placeholder abstraction (`?` → `%s`)
+- [x] Railway DATABASE_URL format handling (`postgres://` → `postgresql://`)
+- [x] Boolean handling compatible with both databases
+
+#### Deployment Documentation
+- [x] Updated RAILWAY_DEPLOYMENT.md for Python/FastAPI stack
+- [x] Railway configuration guide
+- [x] Vercel frontend deployment guide
+- [x] Environment variables reference
+- [x] Production checklist
+- [x] Troubleshooting guide
 
 ---
 
 ## Database Schema
 
-### Tables
-1. **users** - id, email, password_hash, firstname, lastname, username, phone, date_of_birth, role, is_active, created_at, updated_at
-2. **trades** - id, user_id, trade_type, crypto_symbol, amount, rate_used, total_ngn, user_wallet_address, user_bank_account_id, platform_payment_details, status, created_at, completed_at
-3. **crypto_rates** - id, crypto_symbol, crypto_name, buy_rate, sell_rate, updated_at, updated_by_admin_id
-4. **user_payment_methods** - id, user_id, bank_name, account_number, account_name, is_default, created_at
-5. **payment_settings** - id, bank_name, account_number, account_name, wallet_addresses, updated_at
-6. **support_tickets** - id, user_id, subject, message, status, admin_response, created_at, updated_at
-7. **support_ticket_replies** - id, ticket_id, user_id, message, is_admin, created_at
+### Tables (PostgreSQL/SQLite Compatible)
+| Table | Purpose |
+|-------|---------|
+| `users` | User accounts (SERIAL/AUTOINCREMENT PK) |
+| `trades` | Buy/sell cryptocurrency trades |
+| `crypto_rates` | Platform exchange rates |
+| `user_payment_methods` | User bank accounts |
+| `payment_settings` | Platform bank + wallet addresses |
+| `support_tickets` | Customer support tickets |
+| `support_ticket_replies` | Ticket conversation thread |
+
+### Key Schema Differences Handled
+| Feature | SQLite | PostgreSQL |
+|---------|--------|------------|
+| Auto-increment | `INTEGER PRIMARY KEY AUTOINCREMENT` | `SERIAL PRIMARY KEY` |
+| Boolean default | `DEFAULT 1` / `DEFAULT 0` | `DEFAULT TRUE` / `DEFAULT FALSE` |
+| Parameters | `?` | `%s` |
+| Upsert | `INSERT OR IGNORE` | `ON CONFLICT DO NOTHING` |
+| Return ID | `cursor.lastrowid` | `RETURNING id` |
 
 ---
 
@@ -105,23 +130,56 @@ BTC, ETH, USDT, BNB, SOL, USDC, TRX, XRP, ADA, LTC, BCH, TON
 - `PUT /api/admin/trades/{id}/cancel` - Cancel trade
 - `PUT /api/admin/rates` - Update crypto rates
 - `GET /api/admin/users` - Get all users with bank accounts
-- `GET /api/admin/users/{id}/bank-accounts` - Get user's bank accounts
 - `GET /api/admin/tickets` - Get all support tickets
-- `GET /api/admin/tickets/{id}` - Get ticket details
 - `PUT /api/admin/tickets/{id}/close` - Close ticket
+
+### Health Check
+- `GET /api/health` - Returns database type and status
 
 ---
 
 ## Test Credentials
 - **Admin:** admin@mictrades.com / admin123
-- **User:** user@test.com / testuser123
+- **User:** newuser@test.com / newuser123
 
 ---
 
-## Testing Status (March 13, 2026)
-- **Backend:** 27/27 tests passed (100%)
-- **Frontend:** All features verified (100%)
-- **Test Report:** `/app/test_reports/iteration_1.json`
+## Deployment
+
+### Railway (Backend + PostgreSQL)
+1. Create Railway project from GitHub
+2. Add PostgreSQL database service
+3. Set root directory to `backend`
+4. Configure start command: `uvicorn server:app --host 0.0.0.0 --port $PORT`
+5. Set environment variables (DATABASE_URL auto-linked)
+
+### Vercel (Frontend)
+1. Create Vercel project from GitHub
+2. Set root directory to `frontend`
+3. Set REACT_APP_BACKEND_URL to Railway URL
+4. Deploy
+
+See `RAILWAY_DEPLOYMENT.md` for detailed instructions.
+
+---
+
+## Files Structure
+```
+/app
+├── backend/
+│   ├── server.py          # FastAPI main (PostgreSQL-compatible)
+│   ├── database.py        # Dual DB support (SQLite/PostgreSQL)
+│   ├── auth.py            # JWT authentication
+│   └── requirements.txt   # Includes psycopg2-binary
+├── frontend/
+│   ├── src/
+│   │   ├── components/ui/ # Shadcn components
+│   │   ├── lib/api.js     # API client
+│   │   └── pages/         # User and admin pages
+│   └── .env
+├── RAILWAY_DEPLOYMENT.md  # Deployment guide
+└── memory/PRD.md          # This file
+```
 
 ---
 
@@ -132,11 +190,6 @@ BTC, ETH, USDT, BNB, SOL, USDC, TRX, XRP, ADA, LTC, BCH, TON
 - [ ] Send trade confirmation emails
 - [ ] Send status update emails
 
-### P2 - PostgreSQL Migration (for Railway)
-- [ ] Update database.py for PostgreSQL compatibility
-- [ ] Test all queries with PostgreSQL
-- [ ] Update RAILWAY_DEPLOYMENT.md
-
 ### P3 - Enhancements
 - [ ] Automated rate updates from exchange API
 - [ ] Two-factor authentication (2FA)
@@ -146,43 +199,18 @@ BTC, ETH, USDT, BNB, SOL, USDC, TRX, XRP, ADA, LTC, BCH, TON
 
 ---
 
-## Files Structure
-```
-/app
-├── backend/
-│   ├── .env                  # Environment variables
-│   ├── server.py             # FastAPI main application
-│   ├── database.py           # Database schema and init
-│   ├── auth.py               # JWT authentication
-│   └── tests/
-│       └── test_p2p_crypto.py
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── ui/           # Shadcn components
-│   │   │   ├── MobileNav.js
-│   │   │   └── ProtectedRoute.js
-│   │   ├── lib/
-│   │   │   └── api.js        # API client
-│   │   ├── pages/
-│   │   │   ├── admin/        # Admin pages
-│   │   │   │   ├── Dashboard.js
-│   │   │   │   ├── Trades.js
-│   │   │   │   ├── Users.js
-│   │   │   │   ├── Rates.js
-│   │   │   │   └── Support.js
-│   │   │   └── user/         # User pages
-│   │   │       ├── Dashboard.js
-│   │   │       ├── P2PTrade.js
-│   │   │       ├── Markets.js
-│   │   │       ├── History.js
-│   │   │       ├── Settings.js
-│   │   │       └── Support.js
-│   │   ├── App.js            # Main router
-│   │   └── index.js          # Entry point
-│   └── .env
-├── test_reports/
-│   └── iteration_1.json
-├── RAILWAY_DEPLOYMENT.md
-└── PROJECT_README.md
-```
+## Changelog
+
+### March 13, 2026 - P2 Complete
+- Implemented dual database support (SQLite/PostgreSQL)
+- Updated all queries for PostgreSQL compatibility
+- Added connection pooling for production
+- Created comprehensive RAILWAY_DEPLOYMENT.md
+- Tested all endpoints with both database types
+
+### March 13, 2026 - P0 Complete
+- Fixed support ticket system (end-to-end)
+- Fixed password change functionality
+- Added admin trade details with payout info
+- Added admin users with bank accounts
+- Added "Back to Dashboard" navigation

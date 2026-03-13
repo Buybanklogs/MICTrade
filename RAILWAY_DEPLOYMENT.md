@@ -1,236 +1,310 @@
-# P2P Crypto Trading Platform - Railway Deployment Guide
+# MIC Trades - Railway Deployment Guide
+
+This guide covers deploying the MIC Trades P2P Crypto Trading platform to Railway (backend + PostgreSQL) and Vercel (frontend).
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         PRODUCTION                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Vercel (Frontend)          Railway (Backend + PostgreSQL)       │
+│  ┌─────────────────┐       ┌──────────────────────────────┐     │
+│  │   React App     │ ──────▶│   FastAPI Backend            │     │
+│  │   (Static)      │       │   ┌──────────────────────┐   │     │
+│  └─────────────────┘       │   │    PostgreSQL DB     │   │     │
+│                            │   └──────────────────────┘   │     │
+│                            └──────────────────────────────┘     │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ## Prerequisites
-- Railway account (https://railway.app)
-- GitHub repository (optional, can deploy from local)
-- PostgreSQL database on Railway
 
-## Backend Deployment (Node.js + PostgreSQL)
-
-### Step 1: Create New Project on Railway
-1. Go to Railway.app and create a new project
-2. Click "New" → "PostgreSQL" to add a database
-3. Note the connection string provided by Railway
-
-### Step 2: Prepare Backend Code
-
-Update `/app/backend/.env`:
-```env
-# PostgreSQL Database (Railway provides this)
-DATABASE_URL=postgresql://user:password@host:port/database
-
-# JWT Secret (generate a strong secret)
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-
-# Email (Resend)
-RESEND_API_KEY=your_resend_api_key
-SENDER_EMAIL=noreply@yourdomain.com
-
-# CORS (your frontend URL)
-CORS_ORIGINS=https://your-frontend.railway.app
-
-# Frontend URL
-FRONTEND_URL=https://your-frontend.railway.app
-```
-
-### Step 3: Update database.py for PostgreSQL
-
-In `/app/backend/database.py`, ensure PostgreSQL support:
-```python
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./p2p_crypto.db')
-
-# Railway PostgreSQL connection string format
-if DATABASE_URL.startswith('postgres://'):
-    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-```
-
-### Step 4: Create Procfile
-
-Create `/app/backend/Procfile`:
-```
-web: uvicorn server:app --host 0.0.0.0 --port $PORT
-```
-
-### Step 5: Deploy Backend
-
-1. In Railway, click "New" → "GitHub Repo" or "Empty Service"
-2. If using GitHub, connect your repository
-3. Set the root directory to `/backend`
-4. Railway will auto-detect Python and install dependencies
-5. Add environment variables in Railway dashboard
-6. Deploy!
-
-## Frontend Deployment (React)
-
-### Step 1: Update Frontend Environment
-
-Update `/app/frontend/.env.production`:
-```env
-REACT_APP_BACKEND_URL=https://your-backend.railway.app
-```
-
-### Step 2: Build Configuration
-
-Create `/app/frontend/package.json` scripts:
-```json
-{
-  "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "serve": "serve -s build -l $PORT"
-  }
-}
-```
-
-Install serve:
-```bash
-cd /app/frontend
-yarn add serve
-```
-
-### Step 3: Create Procfile
-
-Create `/app/frontend/Procfile`:
-```
-web: yarn serve
-```
-
-### Step 4: Deploy Frontend
-
-1. In Railway, click "New" → "GitHub Repo" or "Empty Service"
-2. Set root directory to `/frontend`
-3. Railway will auto-detect Node.js and build
-4. Add environment variable: `REACT_APP_BACKEND_URL`
-5. Deploy!
-
-## Post-Deployment Setup
-
-### 1. Initialize Database
-
-The database will auto-initialize on first request. Test with:
-```bash
-curl https://your-backend.railway.app/api/health
-```
-
-### 2. Create Admin Account
-
-Default admin credentials are created automatically:
-- Email: `admin@mictrades.com`
-- Password: `admin123`
-
-**IMPORTANT**: Change this password immediately after first login!
-
-### 3. Update Payment Settings
-
-Login as admin and update:
-- Bank account details
-- Crypto wallet addresses
-- Exchange rates
-
-### 4. Configure Email (Optional)
-
-To enable email notifications:
-1. Sign up for Resend (https://resend.com)
-2. Get API key
-3. Add to Railway environment variables
-4. Restart backend service
-
-## Testing Deployment
-
-### Test Backend
-```bash
-curl https://your-backend.railway.app/api/health
-curl https://your-backend.railway.app/api/rates
-```
-
-### Test Frontend
-Visit: `https://your-frontend.railway.app`
-
-### Test Complete Flow
-1. Register new user account
-2. Login
-3. View crypto rates
-4. Create a test trade
-5. Login as admin
-6. Approve trade
-
-## Environment Variables Summary
-
-### Backend
-- `DATABASE_URL` - PostgreSQL connection string (auto-provided by Railway)
-- `JWT_SECRET` - Secret key for JWT tokens
-- `RESEND_API_KEY` - Email service API key
-- `SENDER_EMAIL` - Email sender address
-- `CORS_ORIGINS` - Frontend URL
-- `FRONTEND_URL` - Frontend URL
-
-### Frontend
-- `REACT_APP_BACKEND_URL` - Backend API URL
-
-## Troubleshooting
-
-### Database Connection Issues
-- Ensure DATABASE_URL is set correctly
-- Check if PostgreSQL service is running
-- Verify connection string format
-
-### CORS Errors
-- Update CORS_ORIGINS in backend .env
-- Ensure frontend URL matches exactly
-- Restart backend service
-
-### Build Failures
-- Check Railway logs
-- Verify all dependencies are in requirements.txt/package.json
-- Ensure Python/Node versions are compatible
-
-## Scaling & Monitoring
-
-### Railway Auto-Scaling
-Railway automatically scales your services based on demand.
-
-### Monitoring
-- Check Railway dashboard for logs
-- Monitor database usage
-- Set up alerts for service downtime
-
-## Security Checklist
-
-- [ ] Change default admin password
-- [ ] Use strong JWT_SECRET
-- [ ] Enable HTTPS (Railway does this automatically)
-- [ ] Set proper CORS origins
-- [ ] Keep dependencies updated
-- [ ] Monitor for suspicious activity
-- [ ] Regular database backups
-
-## Support
-
-For issues:
-1. Check Railway logs
-2. Review application logs
-3. Test API endpoints directly
-4. Check database connectivity
-
-## Estimated Costs
-
-- Railway Free Tier: $0/month (with limitations)
-- Hobby Plan: $5/month per service
-- PostgreSQL: Included in service cost
-- Resend Email: Free tier available
-
-## Next Steps
-
-1. Deploy to Railway
-2. Configure production environment
-3. Test all features thoroughly
-4. Update crypto rates regularly
-5. Monitor user activity
-6. Implement email notifications
-7. Add more cryptocurrencies as needed
+- [Railway Account](https://railway.app/)
+- [Vercel Account](https://vercel.com/)
+- [GitHub Repository](https://github.com/) with your code
 
 ---
 
-**Note**: This platform is production-ready with SQLite for local testing and PostgreSQL for Railway deployment. The code automatically detects which database to use based on the DATABASE_URL environment variable.
+## Part 1: Railway Backend Deployment
+
+### Step 1: Create Railway Project
+
+1. Log in to [Railway](https://railway.app/)
+2. Click **"New Project"**
+3. Select **"Deploy from GitHub repo"**
+4. Connect your GitHub account and select the repository
+
+### Step 2: Add PostgreSQL Database
+
+1. In your Railway project, click **"+ New"**
+2. Select **"Database"** → **"PostgreSQL"**
+3. Railway will provision a PostgreSQL database automatically
+
+### Step 3: Configure Backend Service
+
+1. Click on your deployed service
+2. Go to **Settings** → **Root Directory**: Set to `backend`
+3. Go to **Settings** → **Start Command**:
+   ```bash
+   uvicorn server:app --host 0.0.0.0 --port $PORT
+   ```
+
+### Step 4: Set Environment Variables
+
+Go to your backend service → **Variables** tab and add:
+
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | Auto-linked from Railway PostgreSQL |
+| `JWT_SECRET_KEY` | `your-secure-random-key-min-32-chars` | JWT signing key (generate: `openssl rand -hex 32`) |
+| `JWT_ALGORITHM` | `HS256` | JWT algorithm |
+| `CORS_ORIGINS` | `https://your-frontend.vercel.app` | Your Vercel frontend URL |
+| `FRONTEND_URL` | `https://your-frontend.vercel.app` | Frontend URL for redirects |
+
+**Important:** Replace `your-frontend.vercel.app` with your actual Vercel domain after deployment.
+
+### Step 5: Update requirements.txt
+
+Ensure your `backend/requirements.txt` includes PostgreSQL driver:
+
+```txt
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-dotenv==1.0.0
+pydantic[email]==2.5.2
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+psycopg2-binary==2.9.9
+requests==2.31.0
+```
+
+### Step 6: Deploy
+
+1. Push your code to GitHub
+2. Railway will auto-deploy on push
+3. Monitor deployment logs in Railway dashboard
+4. Note your Railway backend URL: `https://your-app.railway.app`
+
+---
+
+## Part 2: Vercel Frontend Deployment
+
+### Step 1: Create Vercel Project
+
+1. Log in to [Vercel](https://vercel.com/)
+2. Click **"Add New"** → **"Project"**
+3. Import your GitHub repository
+4. Configure:
+   - **Framework Preset**: `Create React App`
+   - **Root Directory**: `frontend`
+   - **Build Command**: `yarn build`
+   - **Output Directory**: `build`
+
+### Step 2: Set Environment Variables
+
+Add these environment variables in Vercel:
+
+| Variable | Value |
+|----------|-------|
+| `REACT_APP_BACKEND_URL` | `https://your-app.railway.app` |
+
+**Important:** Use your Railway backend URL from Step 1.6.
+
+### Step 3: Deploy
+
+1. Click **"Deploy"**
+2. Vercel will build and deploy your frontend
+3. Note your Vercel URL: `https://your-app.vercel.app`
+
+### Step 4: Update Railway CORS
+
+Go back to Railway and update the `CORS_ORIGINS` variable with your actual Vercel URL.
+
+---
+
+## Part 3: Post-Deployment Configuration
+
+### Update Admin Credentials (Important!)
+
+After first deployment, immediately update the default admin password:
+
+1. Log in with default credentials:
+   - Email: `admin@mictrades.com`
+   - Password: `admin123`
+2. Go to Settings → Change Password
+3. Set a strong, unique password
+
+### Verify Database Migration
+
+The database schema is automatically created on first startup. Verify by:
+
+1. Go to Railway → PostgreSQL service
+2. Click **"Data"** tab
+3. Verify tables exist: `users`, `trades`, `crypto_rates`, etc.
+
+---
+
+## Environment Variables Reference
+
+### Backend (.env for local development)
+
+```env
+# Database (PostgreSQL for production, SQLite for local)
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+
+# JWT Configuration
+JWT_SECRET_KEY=your-very-secure-secret-key-minimum-32-characters
+JWT_ALGORITHM=HS256
+JWT_EXPIRY_MINUTES=60
+
+# CORS
+CORS_ORIGINS=https://your-frontend.vercel.app,http://localhost:3000
+
+# Frontend URL
+FRONTEND_URL=https://your-frontend.vercel.app
+```
+
+### Frontend (.env)
+
+```env
+REACT_APP_BACKEND_URL=https://your-app.railway.app
+```
+
+---
+
+## Database Schema
+
+The application automatically creates these tables on startup:
+
+| Table | Purpose |
+|-------|---------|
+| `users` | User accounts (customers + admins) |
+| `trades` | Buy/sell cryptocurrency trades |
+| `crypto_rates` | Platform exchange rates |
+| `user_payment_methods` | User bank accounts |
+| `payment_settings` | Platform bank + wallet addresses |
+| `support_tickets` | Customer support tickets |
+| `support_ticket_replies` | Ticket conversation thread |
+
+---
+
+## Production Checklist
+
+### Security
+- [ ] Changed default admin password
+- [ ] Generated secure JWT_SECRET_KEY (32+ chars)
+- [ ] Set proper CORS_ORIGINS (no wildcards)
+- [ ] SSL/HTTPS enabled (automatic on Railway/Vercel)
+
+### Configuration
+- [ ] DATABASE_URL points to Railway PostgreSQL
+- [ ] REACT_APP_BACKEND_URL points to Railway backend
+- [ ] CORS_ORIGINS includes Vercel frontend URL
+
+### Testing
+- [ ] User registration works
+- [ ] User login works
+- [ ] Admin login works
+- [ ] Trade creation works
+- [ ] Trade approval works
+- [ ] Support tickets work
+
+---
+
+## Troubleshooting
+
+### Backend won't start
+
+**Check logs:**
+```bash
+# In Railway dashboard → Deployments → View Logs
+```
+
+**Common issues:**
+- Missing `psycopg2-binary` in requirements.txt
+- Invalid DATABASE_URL format
+- Missing environment variables
+
+### Database connection errors
+
+**Verify DATABASE_URL format:**
+```
+postgresql://username:password@host:port/database
+```
+
+**Note:** Railway may provide `postgres://` URL - the app handles both formats.
+
+### CORS errors
+
+**Symptoms:** Frontend can't reach backend, browser console shows CORS errors.
+
+**Fix:**
+1. Check CORS_ORIGINS in Railway includes your exact Vercel URL
+2. Include protocol: `https://your-app.vercel.app` (not just the domain)
+3. Redeploy backend after changing CORS_ORIGINS
+
+### Frontend shows "Backend unavailable"
+
+1. Verify REACT_APP_BACKEND_URL is correct
+2. Check Railway backend is running (green status)
+3. Test backend directly: `curl https://your-app.railway.app/api/health`
+
+---
+
+## Scaling & Monitoring
+
+### Railway
+- Enable **Auto-scaling** for traffic spikes
+- Monitor **Metrics** tab for CPU/Memory usage
+- Set up **Alerts** for downtime notifications
+
+### Vercel
+- Enable **Analytics** for frontend performance
+- Use **Edge Functions** for improved latency
+- Set up **Custom Domain** for branding
+
+---
+
+## Cost Estimation
+
+### Railway
+- **Hobby Plan**: Free tier with limits
+- **Pro Plan**: ~$5/month base + usage
+- PostgreSQL: Included in compute costs
+
+### Vercel
+- **Hobby Plan**: Free for personal projects
+- **Pro Plan**: $20/month for team features
+
+**Estimated monthly cost:** $5-25 for small-medium traffic
+
+---
+
+## Support
+
+- Railway Docs: https://docs.railway.app/
+- Vercel Docs: https://vercel.com/docs
+- FastAPI Docs: https://fastapi.tiangolo.com/
+- PostgreSQL Docs: https://www.postgresql.org/docs/
+
+---
+
+## Quick Commands
+
+```bash
+# Local development with SQLite
+cd backend
+DATABASE_URL=sqlite:///./p2p_crypto.db uvicorn server:app --reload --port 8001
+
+# Local development with PostgreSQL
+cd backend
+DATABASE_URL=postgresql://user:pass@localhost:5432/mictrades uvicorn server:app --reload --port 8001
+
+# Test backend health
+curl https://your-app.railway.app/api/health
+
+# View PostgreSQL tables (Railway CLI)
+railway connect postgres
+\dt
+```
