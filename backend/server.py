@@ -27,10 +27,45 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="P2P Crypto Trading API")
 
+
+def env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def parse_cors_origins() -> list[str]:
+    raw_origins = os.getenv("CORS_ORIGINS", "").strip()
+    frontend_url = os.getenv("FRONTEND_URL", "").strip()
+
+    if raw_origins:
+        origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+    elif frontend_url:
+        origins = [frontend_url]
+    else:
+        origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+    if "*" in origins:
+        logger.warning(
+            "CORS_ORIGINS contains '*'. Because allow_credentials=True requires explicit origins, "
+            "falling back to FRONTEND_URL or localhost defaults."
+        )
+        origins = [frontend_url] if frontend_url else ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+    return origins
+
+
+CORS_ORIGINS = parse_cors_origins()
+COOKIE_SECURE = env_bool("COOKIE_SECURE", True)
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "none").strip().lower()
+if COOKIE_SAMESITE not in {"lax", "strict", "none"}:
+    COOKIE_SAMESITE = "none"
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv('CORS_ORIGINS', '*').split(','),
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -297,13 +332,15 @@ async def login(request: Request, user: UserLogin):
             "role": role
         })
         
-        # Set HTTP-only cookie
+        # Set HTTP-only cookie for cross-site frontend/backend deployment
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
+            secure=COOKIE_SECURE,
+            samesite=COOKIE_SAMESITE,
             max_age=3600,
-            samesite="lax"
+            path="/"
         )
         
         return response
@@ -319,7 +356,13 @@ async def login(request: Request, user: UserLogin):
 @app.post("/api/auth/logout")
 async def logout():
     response = JSONResponse({"success": True, "message": "Logged out successfully"})
-    response.delete_cookie("access_token")
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        secure=COOKIE_SECURE,
+        httponly=True,
+        samesite=COOKIE_SAMESITE,
+    )
     return response
 
 
