@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import logging
 import sqlite3
+import json
 
 load_dotenv()
 
@@ -69,11 +70,23 @@ def init_database():
                 phone VARCHAR(20) NOT NULL,
                 date_of_birth DATE NOT NULL,
                 role VARCHAR(20) DEFAULT 'user',
-                bank_account TEXT,
-                crypto_wallets TEXT,
                 is_active BOOLEAN DEFAULT 1,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # User payment methods table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_payment_methods (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                bank_name VARCHAR(100) NOT NULL,
+                account_number VARCHAR(50) NOT NULL,
+                account_name VARCHAR(100) NOT NULL,
+                is_default BOOLEAN DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
         
@@ -81,7 +94,8 @@ def init_database():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS crypto_rates (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                crypto_symbol VARCHAR(10) NOT NULL,
+                crypto_symbol VARCHAR(10) UNIQUE NOT NULL,
+                crypto_name VARCHAR(50) NOT NULL,
                 buy_rate DECIMAL(20, 2) NOT NULL,
                 sell_rate DECIMAL(20, 2) NOT NULL,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -89,7 +103,7 @@ def init_database():
             )
         """)
         
-        # Trades table
+        # Trades table with wallet address and bank account
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS trades (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,14 +113,18 @@ def init_database():
                 amount DECIMAL(20, 8) NOT NULL,
                 rate_used DECIMAL(20, 2) NOT NULL,
                 total_ngn DECIMAL(20, 2) NOT NULL,
-                payment_details TEXT,
+                user_wallet_address TEXT,
+                user_bank_account_id INTEGER,
+                platform_payment_details TEXT,
                 status VARCHAR(20) DEFAULT 'pending',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                completed_at TIMESTAMP
+                completed_at TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (user_bank_account_id) REFERENCES user_payment_methods(id)
             )
         """)
         
-        # Payment settings table
+        # Platform payment settings table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS payment_settings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -126,41 +144,70 @@ def init_database():
                 subject VARCHAR(255) NOT NULL,
                 message TEXT NOT NULL,
                 status VARCHAR(20) DEFAULT 'open',
-                admin_response TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
         
-        # Insert default crypto rates if not exists
+        # Support ticket replies table
         cursor.execute("""
-            INSERT OR IGNORE INTO crypto_rates (id, crypto_symbol, buy_rate, sell_rate)
-            VALUES (1, 'BTC', 45000000.00, 44000000.00)
+            CREATE TABLE IF NOT EXISTS support_ticket_replies (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ticket_id INTEGER NOT NULL,
+                user_id INTEGER,
+                message TEXT NOT NULL,
+                is_admin BOOLEAN DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (ticket_id) REFERENCES support_tickets(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
         """)
         
-        cursor.execute("""
-            INSERT OR IGNORE INTO crypto_rates (id, crypto_symbol, buy_rate, sell_rate)
-            VALUES (2, 'ETH', 2500000.00, 2400000.00)
-        """)
+        # Insert all 12 supported cryptocurrencies
+        cryptos = [
+            (1, 'BTC', 'Bitcoin', 45000000.00, 44000000.00),
+            (2, 'ETH', 'Ethereum', 2500000.00, 2400000.00),
+            (3, 'USDT', 'Tether', 1650.00, 1600.00),
+            (4, 'BNB', 'BNB', 350000.00, 340000.00),
+            (5, 'SOL', 'Solana', 120000.00, 115000.00),
+            (6, 'USDC', 'USD Coin', 1650.00, 1600.00),
+            (7, 'TRX', 'TRON', 220.00, 210.00),
+            (8, 'XRP', 'XRP', 850.00, 820.00),
+            (9, 'ADA', 'Cardano', 550.00, 530.00),
+            (10, 'LTC', 'Litecoin', 150000.00, 145000.00),
+            (11, 'BCH', 'Bitcoin Cash', 250000.00, 240000.00),
+            (12, 'TON', 'Toncoin', 3500.00, 3400.00)
+        ]
         
-        cursor.execute("""
-            INSERT OR IGNORE INTO crypto_rates (id, crypto_symbol, buy_rate, sell_rate)
-            VALUES (3, 'USDT', 1650.00, 1600.00)
-        """)
+        for crypto in cryptos:
+            cursor.execute("""
+                INSERT OR IGNORE INTO crypto_rates (id, crypto_symbol, crypto_name, buy_rate, sell_rate)
+                VALUES (?, ?, ?, ?, ?)
+            """, crypto)
         
-        # Insert default payment settings
+        # Insert default platform payment settings
+        wallet_addresses = {
+            "BTC": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+            "ETH": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+            "USDT": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+            "BNB": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+            "SOL": "7UX2i7SucgLMQcfZ75s3VXmZZY4YRUyJN9X1RgfMoDUi",
+            "USDC": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+            "TRX": "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf",
+            "XRP": "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
+            "ADA": "addr1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+            "LTC": "ltc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+            "BCH": "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a",
+            "TON": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7"
+        }
+        
         cursor.execute("""
             INSERT OR IGNORE INTO payment_settings (id, bank_name, account_number, account_name, wallet_addresses)
-            VALUES (
-                1,
-                'First Bank of Nigeria',
-                '1234567890',
-                'MIC Trades Limited',
-                '{"BTC": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", "ETH": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb", "USDT": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"}'
-            )
-        """)
+            VALUES (1, ?, ?, ?, ?)
+        """, ('First Bank of Nigeria', '1234567890', 'MIC Trades Limited', json.dumps(wallet_addresses)))
         
-        # Create default admin user if not exists
+        # Create default admin user
         from auth import get_password_hash
         admin_password = get_password_hash("admin123")
         cursor.execute("""
@@ -169,7 +216,7 @@ def init_database():
         """, (admin_password,))
         
         conn.commit()
-        logger.info("Database initialized successfully")
+        logger.info("Database initialized successfully with all 12 cryptocurrencies")
         
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
