@@ -43,6 +43,8 @@ export const user = {
 export const support = {
   createTicket: (data) => api.post('/api/support/tickets', data),
   getTickets: () => api.get('/api/support/tickets'),
+  getTicketDetails: (id) => api.get(`/api/support/tickets/${id}`),
+  replyToTicket: (id, data) => api.post(`/api/support/tickets/${id}/reply`, data),
 };
 
 export const admin = {
@@ -53,6 +55,9 @@ export const admin = {
   getUsers: () => api.get('/api/admin/users'),
   getStats: () => api.get('/api/admin/stats'),
   getTickets: () => api.get('/api/admin/tickets'),
+  getTicketDetails: (id) => api.get(`/api/admin/tickets/${id}`),
+  replyToTicket: (id, data) => api.post(`/api/support/tickets/${id}/reply`, data),
+  closeTicket: (id) => api.put(`/api/admin/tickets/${id}/close`),
 };
 
 export default api;

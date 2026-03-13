@@ -1,12 +1,152 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { MessageCircle, Clock, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '../../components/ui/button';
+import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { toast } from 'sonner';
+import { admin } from '../../lib/api';
 
 const AdminSupport = () => {
+  const [tickets, setTickets] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [replyMessage, setReplyMessage] = useState('');
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const fetchTickets = async () => {
+    try {
+      const response = await admin.getTickets();
+      setTickets(response.data.tickets);
+    } catch (error) {
+      toast.error('Failed to fetch tickets');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTicketDetails = async (ticketId) => {
+    try {
+      const response = await admin.getTicketDetails(ticketId);
+      setSelectedTicket(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch ticket details');
+    }
+  };
+
+  const handleReply = async () => {
+    if (!replyMessage.trim()) return;
+    try {
+      await admin.replyToTicket(selectedTicket.ticket.id, { ticket_id: selectedTicket.ticket.id, message: replyMessage });
+      toast.success('Reply sent');
+      setReplyMessage('');
+      fetchTicketDetails(selectedTicket.ticket.id);
+      fetchTickets();
+    } catch (error) {
+      toast.error('Failed to send reply');
+    }
+  };
+
+  const handleClose = async () => {
+    try {
+      await admin.closeTicket(selectedTicket.ticket.id);
+      toast.success('Ticket closed');
+      setSelectedTicket(null);
+      fetchTickets();
+    } catch (error) {
+      toast.error('Failed to close ticket');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <h1 className="text-3xl font-bold text-slate-900 mb-8">Support Tickets</h1>
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <p className="text-slate-600">Support tickets coming soon...</p>
+    <div className="min-h-screen bg-slate-50 p-4 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <Link to="/admin" className="text-blue-600 hover:text-blue-700 text-sm mb-2 inline-block">← Back to Dashboard</Link>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Support Tickets</h1>
+          <p className="text-slate-600">Manage user support requests</p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : tickets.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+            <MessageCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+            <p className="text-slate-400">No support tickets</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {tickets.map((ticket) => (
+              <div key={ticket.id} className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition cursor-pointer" onClick={() => fetchTicketDetails(ticket.id)}>
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-bold text-slate-900">{ticket.subject}</h3>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        ticket.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {ticket.status === 'open' ? <Clock className="w-3 h-3 inline mr-1" /> : <CheckCircle className="w-3 h-3 inline mr-1" />}
+                        {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-600 mb-2">{ticket.user_name} ({ticket.user_email})</p>
+                    <p className="text-sm text-slate-500 line-clamp-1">{ticket.message}</p>
+                  </div>
+                  <div className="mt-4 lg:mt-0 text-sm text-slate-400">
+                    {new Date(ticket.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedTicket?.ticket.subject}</DialogTitle>
+          </DialogHeader>
+          {selectedTicket && (
+            <div className="space-y-4">
+              <div className="bg-slate-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-slate-900">{selectedTicket.ticket.user_name}</span>
+                  <span className="text-xs text-slate-400">{new Date(selectedTicket.ticket.created_at).toLocaleString()}</span>
+                </div>
+                <p className="text-sm text-slate-700">{selectedTicket.ticket.message}</p>
+              </div>
+
+              {selectedTicket.replies.map((reply) => (
+                <div key={reply.id} className={`rounded-lg p-4 ${reply.is_admin ? 'bg-blue-50 border-l-4 border-blue-600' : 'bg-slate-50'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-slate-900">{reply.author_name} {reply.is_admin && '(Admin)'}</span>
+                    <span className="text-xs text-slate-400">{new Date(reply.created_at).toLocaleString()}</span>
+                  </div>
+                  <p className="text-sm text-slate-700">{reply.message}</p>
+                </div>
+              ))}
+
+              {selectedTicket.ticket.status === 'open' && (
+                <div>
+                  <Label>Admin Reply</Label>
+                  <Textarea value={replyMessage} onChange={(e) => setReplyMessage(e.target.value)} placeholder="Type your response..." rows={3} className="mt-2" />
+                  <div className="flex space-x-2 mt-2">
+                    <Button onClick={handleReply} className="flex-1">Send Reply</Button>
+                    <Button onClick={handleClose} variant="outline">Close Ticket</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

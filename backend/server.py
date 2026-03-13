@@ -1021,6 +1021,184 @@ async def get_user_stats(current_user: dict = Depends(get_current_user)):
                 "pending_trades": pending_trades,
                 "completed_trades": completed_trades
             }
+
+# ============ SUPPORT TICKET REPLY ROUTES ============
+
+class TicketReplyCreate(BaseModel):
+    ticket_id: int
+    message: str
+
+@app.post("/api/support/tickets/{ticket_id}/reply")
+async def reply_to_ticket(ticket_id: int, reply: TicketReplyCreate, current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Verify ticket exists and belongs to user or is admin
+        cursor.execute("""
+            SELECT user_id FROM support_tickets WHERE id = ?
+        """, (ticket_id,))
+        ticket = cursor.fetchone()
+        
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket not found")
+        
+        if ticket[0] != current_user["id"] and current_user["role"] != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        is_admin = current_user["role"] == "admin"
+        
+        # Insert reply
+        cursor.execute("""
+            INSERT INTO support_ticket_replies (ticket_id, user_id, message, is_admin)
+            VALUES (?, ?, ?, ?)
+        """, (ticket_id, current_user["id"], reply.message, is_admin))
+        
+        # Update ticket updated_at
+        cursor.execute("""
+            UPDATE support_tickets SET updated_at = CURRENT_TIMESTAMP WHERE id = ?
+        """, (ticket_id,))
+        
+        conn.commit()
+        
+        return {"success": True, "message": "Reply added successfully"}
+    except HTTPException as e:
+        conn.rollback()
+        raise e
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Ticket reply error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to add reply")
+    finally:
+        release_db_connection(conn)
+
+@app.get("/api/support/tickets/{ticket_id}")
+async def get_ticket_details(ticket_id: int, current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Get ticket
+        cursor.execute("""
+            SELECT id, subject, message, status, created_at, updated_at
+            FROM support_tickets
+            WHERE id = ? AND user_id = ?
+        """, (ticket_id, current_user["id"]))
+        
+        ticket = cursor.fetchone()
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket not found")
+        
+        # Get replies
+        cursor.execute("""
+            SELECT sr.id, sr.message, sr.is_admin, sr.created_at, u.firstname, u.lastname
+            FROM support_ticket_replies sr
+            JOIN users u ON sr.user_id = u.id
+            WHERE sr.ticket_id = ?
+            ORDER BY sr.created_at ASC
+        """, (ticket_id,))
+        
+        replies = cursor.fetchall()
+        
+        return {
+            "success": True,
+            "ticket": {
+                "id": ticket[0],
+                "subject": ticket[1],
+                "message": ticket[2],
+                "status": ticket[3],
+                "created_at": ticket[4],
+                "updated_at": ticket[5]
+            },
+            "replies": [
+                {
+                    "id": r[0],
+                    "message": r[1],
+                    "is_admin": bool(r[2]),
+                    "created_at": r[3],
+                    "author_name": f"{r[4]} {r[5]}"
+                }
+                for r in replies
+            ]
+        }
+    finally:
+        release_db_connection(conn)
+
+@app.put("/api/admin/tickets/{ticket_id}/close")
+async def admin_close_ticket(ticket_id: int, admin: dict = Depends(require_admin)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE support_tickets SET status = 'closed', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (ticket_id,))
+        
+        conn.commit()
+        return {"success": True, "message": "Ticket closed"}
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Ticket close error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to close ticket")
+    finally:
+        release_db_connection(conn)
+
+@app.get("/api/admin/tickets/{ticket_id}")
+async def admin_get_ticket_details(ticket_id: int, admin: dict = Depends(require_admin)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Get ticket with user info
+        cursor.execute("""
+            SELECT st.id, st.subject, st.message, st.status, st.created_at, st.updated_at,
+                   u.firstname, u.lastname, u.email
+            FROM support_tickets st
+            JOIN users u ON st.user_id = u.id
+            WHERE st.id = ?
+        """, (ticket_id,))
+        
+        ticket = cursor.fetchone()
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket not found")
+        
+        # Get replies
+        cursor.execute("""
+            SELECT sr.id, sr.message, sr.is_admin, sr.created_at, u.firstname, u.lastname
+            FROM support_ticket_replies sr
+            JOIN users u ON sr.user_id = u.id
+            WHERE sr.ticket_id = ?
+            ORDER BY sr.created_at ASC
+        """, (ticket_id,))
+        
+        replies = cursor.fetchall()
+        
+        return {
+            "success": True,
+            "ticket": {
+                "id": ticket[0],
+                "subject": ticket[1],
+                "message": ticket[2],
+                "status": ticket[3],
+                "created_at": ticket[4],
+                "updated_at": ticket[5],
+                "user_name": f"{ticket[6]} {ticket[7]}",
+                "user_email": ticket[8]
+            },
+            "replies": [
+                {
+                    "id": r[0],
+                    "message": r[1],
+                    "is_admin": bool(r[2]),
+                    "created_at": r[3],
+                    "author_name": f"{r[4]} {r[5]}"
+                }
+                for r in replies
+            ]
+        }
+    finally:
+        release_db_connection(conn)
+
         }
     finally:
         release_db_connection(conn)
