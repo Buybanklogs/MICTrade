@@ -251,7 +251,7 @@ async def get_rates():
                     "symbol": r[0],
                     "buy_rate": float(r[1]),
                     "sell_rate": float(r[2]),
-                    "updated_at": r[3].isoformat() if r[3] else None
+                    "updated_at": r[3] if r[3] else None
                 }
                 for r in rates
             ]
@@ -1021,6 +1021,9 @@ async def get_user_stats(current_user: dict = Depends(get_current_user)):
                 "pending_trades": pending_trades,
                 "completed_trades": completed_trades
             }
+        }
+    finally:
+        release_db_connection(conn)
 
 # ============ SUPPORT TICKET REPLY ROUTES ============
 
@@ -1195,10 +1198,6 @@ async def admin_get_ticket_details(ticket_id: int, admin: dict = Depends(require
                 }
                 for r in replies
             ]
-        }
-    finally:
-        release_db_connection(conn)
-
         }
     finally:
         release_db_connection(conn)
