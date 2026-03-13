@@ -120,14 +120,13 @@ const P2PTrade = () => {
   };
 
   return (
-    <div className=\"min-h-screen bg-slate-50 p-4 lg:p-8\">
-      <div className=\"max-w-4xl mx-auto\">
-        <h1 className=\"text-3xl font-bold text-slate-900 mb-8\">P2P Crypto Trading</h1>
+    <div className="min-h-screen bg-slate-50 p-4 lg:p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-slate-900 mb-8">P2P Crypto Trading</h1>
 
         {!tradeResult ? (
-          <div className=\"bg-white rounded-2xl border border-slate-200 p-6 lg:p-8\">
-            {/* Trade Type Toggle */}
-            <div className=\"flex gap-4 mb-8\">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:p-8">
+            <div className="flex gap-4 mb-8">
               <Button
                 onClick={() => {
                   setTradeType('buy');
@@ -135,7 +134,7 @@ const P2PTrade = () => {
                   setWalletAddress('');
                 }}
                 className={`flex-1 h-12 ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                data-testid=\"buy-button\"
+                data-testid="buy-button"
               >
                 Buy Crypto
               </Button>
@@ -146,16 +145,15 @@ const P2PTrade = () => {
                   setWalletAddress('');
                 }}
                 className={`flex-1 h-12 ${tradeType === 'sell' ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                data-testid=\"sell-button\"
+                data-testid="sell-button"
               >
                 Sell Crypto
               </Button>
             </div>
 
-            {/* Crypto Selection */}
-            <div className=\"mb-6\">
+            <div className="mb-6">
               <Label>Select Cryptocurrency</Label>
-              <div className=\"grid grid-cols-2 lg:grid-cols-4 gap-3 mt-2\">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-2">
                 {ALL_CRYPTOS.map(crypto => (
                   <button
                     key={crypto.symbol}
@@ -167,157 +165,152 @@ const P2PTrade = () => {
                     }`}
                     data-testid={`crypto-${crypto.symbol}`}
                   >
-                    <div className=\"font-bold text-sm lg:text-base\">{crypto.symbol}</div>
-                    <div className=\"text-xs text-slate-600\">{crypto.name}</div>
+                    <div className="font-bold text-sm lg:text-base">{crypto.symbol}</div>
+                    <div className="text-xs text-slate-600">{crypto.name}</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Amount Input */}
-            <div className=\"mb-6\">
-              <Label htmlFor=\"amount\">Amount (USD)</Label>
+            <div className="mb-6">
+              <Label htmlFor="amount">Amount (USD)</Label>
               <Input
-                id=\"amount\"
-                type=\"number\"
-                step=\"0.00000001\"
-                placeholder=\"0.00\"
-                className=\"h-12 text-lg mt-2\"
+                id="amount"
+                type="number"
+                step="0.00000001"
+                placeholder="0.00"
+                className="h-12 text-lg mt-2"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                data-testid=\"amount-input\"
+                data-testid="amount-input"
               />
             </div>
 
-            {/* Wallet Address for Buy */}
             {tradeType === 'buy' && (
-              <div className=\"mb-6\">
-                <Label htmlFor=\"wallet\">Your {selectedCrypto} Wallet Address *</Label>
+              <div className="mb-6">
+                <Label htmlFor="wallet">Your {selectedCrypto} Wallet Address *</Label>
                 <Input
-                  id=\"wallet\"
-                  type=\"text\"
+                  id="wallet"
+                  type="text"
                   placeholder={`Enter your ${selectedCrypto} wallet address`}
-                  className=\"h-12 mt-2\"
+                  className="h-12 mt-2"
                   value={walletAddress}
                   onChange={(e) => setWalletAddress(e.target.value)}
-                  data-testid=\"wallet-input\"
+                  data-testid="wallet-input"
                 />
-                <p className=\"text-sm text-red-600 mt-2\">⚠️ Double-check your wallet address. Wrong address may result in loss of funds.</p>
+                <p className="text-sm text-red-600 mt-2">⚠️ Double-check your wallet address. Wrong address may result in loss of funds.</p>
               </div>
             )}
 
-            {/* Bank Account Selection for Sell */}
             {tradeType === 'sell' && (
-              <div className=\"mb-6\">
+              <div className="mb-6">
                 <Label>Select Bank Account to Receive Payment *</Label>
                 {selectedBankAccount ? (
-                  <div className=\"mt-2 p-4 border-2 border-blue-600 bg-blue-50 rounded-lg\">
-                    <div className=\"flex items-center justify-between\">
+                  <div className="mt-2 p-4 border-2 border-blue-600 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <div className=\"font-medium\">{bankAccounts.find(b => b.id === selectedBankAccount)?.bank_name}</div>
-                        <div className=\"text-sm text-slate-600\">{bankAccounts.find(b => b.id === selectedBankAccount)?.account_number}</div>
-                        <div className=\"text-sm text-slate-600\">{bankAccounts.find(b => b.id === selectedBankAccount)?.account_name}</div>
+                        <div className="font-medium">{bankAccounts.find(b => b.id === selectedBankAccount)?.bank_name}</div>
+                        <div className="text-sm text-slate-600">{bankAccounts.find(b => b.id === selectedBankAccount)?.account_number}</div>
+                        <div className="text-sm text-slate-600">{bankAccounts.find(b => b.id === selectedBankAccount)?.account_name}</div>
                       </div>
-                      <Button size=\"sm\" variant=\"outline\" onClick={() => setShowBankDialog(true)}>Change</Button>
+                      <Button size="sm" variant="outline" onClick={() => setShowBankDialog(true)}>Change</Button>
                     </div>
                   </div>
                 ) : (
                   <Button
                     onClick={() => setShowBankDialog(true)}
-                    variant=\"outline\"
-                    className=\"w-full h-12 mt-2\"
-                    data-testid=\"choose-bank-btn\"
+                    variant="outline"
+                    className="w-full h-12 mt-2"
+                    data-testid="choose-bank-btn"
                   >
-                    <Plus className=\"w-4 h-4 mr-2\" />
+                    <Plus className="w-4 h-4 mr-2" />
                     Choose Bank Account
                   </Button>
                 )}
               </div>
             )}
 
-            {/* Rate & Total */}
-            <div className=\"bg-slate-50 rounded-lg p-6 mb-6\">
-              <div className=\"flex justify-between mb-4\">
-                <span className=\"text-slate-600\">Rate:</span>
-                <span className=\"font-bold\">₦{getCurrentRate().toLocaleString()}</span>
+            <div className="bg-slate-50 rounded-lg p-6 mb-6">
+              <div className="flex justify-between mb-4">
+                <span className="text-slate-600">Rate:</span>
+                <span className="font-bold">₦{getCurrentRate().toLocaleString()}</span>
               </div>
-              <div className=\"flex justify-between text-lg\">
-                <span className=\"text-slate-600\">You will {tradeType === 'buy' ? 'pay' : 'receive'}:</span>
-                <span className=\"font-bold text-blue-600\">₦{calculateTotal().toLocaleString()}</span>
+              <div className="flex justify-between text-lg">
+                <span className="text-slate-600">You will {tradeType === 'buy' ? 'pay' : 'receive'}:</span>
+                <span className="font-bold text-blue-600">₦{calculateTotal().toLocaleString()}</span>
               </div>
             </div>
 
             <Button
               onClick={handleTrade}
-              className=\"w-full h-12 bg-blue-600 hover:bg-blue-700\"
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700"
               disabled={loading}
-              data-testid=\"trade-now-button\"
+              data-testid="trade-now-button"
             >
               {loading ? 'Processing...' : 'Trade Now'}
             </Button>
           </div>
         ) : (
-          <div className=\"bg-white rounded-2xl border border-slate-200 p-6 lg:p-8\">
-            <div className=\"text-center mb-6\">
-              <div className=\"w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4\">
-                <ArrowDownUp className=\"w-8 h-8 text-green-600\" />
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:p-8">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ArrowDownUp className="w-8 h-8 text-green-600" />
               </div>
-              <h2 className=\"text-2xl font-bold text-slate-900 mb-2\">Trade Created Successfully!</h2>
-              <p className=\"text-slate-600\">Trade ID: #{tradeResult.id}</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Trade Created Successfully!</h2>
+              <p className="text-slate-600">Trade ID: #{tradeResult.id}</p>
             </div>
 
-            <div className=\"bg-slate-50 rounded-lg p-6 mb-6\">
-              <h3 className=\"font-bold text-lg mb-4\">Payment Instructions</h3>
+            <div className="bg-slate-50 rounded-lg p-6 mb-6">
+              <h3 className="font-bold text-lg mb-4">Payment Instructions</h3>
               
               {tradeType === 'buy' ? (
-                <div className=\"space-y-2\">
-                  <p className=\"text-slate-600\">Please transfer <span className=\"font-bold text-slate-900\">₦{tradeResult.total_ngn.toLocaleString()}</span> to:</p>
-                  <div className=\"bg-white rounded p-4 mt-4\">
-                    <div className=\"grid grid-cols-1 lg:grid-cols-2 gap-4\">
+                <div className="space-y-2">
+                  <p className="text-slate-600">Please transfer <span className="font-bold text-slate-900">₦{tradeResult.total_ngn.toLocaleString()}</span> to:</p>
+                  <div className="bg-white rounded p-4 mt-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
-                        <div className=\"text-xs text-slate-600\">Bank Name</div>
-                        <div className=\"font-bold\">{tradeResult.payment_details.bank_name}</div>
+                        <div className="text-xs text-slate-600">Bank Name</div>
+                        <div className="font-bold">{tradeResult.payment_details.bank_name}</div>
                       </div>
                       <div>
-                        <div className=\"text-xs text-slate-600\">Account Number</div>
-                        <div className=\"font-bold\">{tradeResult.payment_details.account_number}</div>
+                        <div className="text-xs text-slate-600">Account Number</div>
+                        <div className="font-bold">{tradeResult.payment_details.account_number}</div>
                       </div>
-                      <div className=\"col-span-full\">
-                        <div className=\"text-xs text-slate-600\">Account Name</div>
-                        <div className=\"font-bold\">{tradeResult.payment_details.account_name}</div>
+                      <div className="col-span-full">
+                        <div className="text-xs text-slate-600">Account Name</div>
+                        <div className="font-bold">{tradeResult.payment_details.account_name}</div>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className=\"space-y-2\">
-                  <p className=\"text-slate-600\">Please send <span className=\"font-bold text-slate-900\">{tradeResult.amount} {tradeResult.crypto_symbol}</span> to:</p>
-                  <div className=\"bg-white rounded p-4 mt-4\">
-                    <div className=\"text-xs text-slate-600 mb-1\">Wallet Address</div>
-                    <div className=\"font-mono text-sm break-all\">{tradeResult.payment_details.wallet_address}</div>
+                <div className="space-y-2">
+                  <p className="text-slate-600">Please send <span className="font-bold text-slate-900">{tradeResult.amount} {tradeResult.crypto_symbol}</span> to:</p>
+                  <div className="bg-white rounded p-4 mt-4">
+                    <div className="text-xs text-slate-600 mb-1">Wallet Address</div>
+                    <div className="font-mono text-sm break-all">{tradeResult.payment_details.wallet_address}</div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className=\"bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6\">
-              <p className=\"text-yellow-800 text-sm\">Your trade is pending confirmation. Admin will verify and complete the transaction.</p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <p className="text-yellow-800 text-sm">Your trade is pending confirmation. Admin will verify and complete the transaction.</p>
             </div>
 
-            <Button onClick={() => { setTradeResult(null); setAmount(''); setWalletAddress(''); setSelectedBankAccount(null); }} variant=\"outline\" className=\"w-full h-12\">
+            <Button onClick={() => { setTradeResult(null); setAmount(''); setWalletAddress(''); setSelectedBankAccount(null); }} variant="outline" className="w-full h-12">
               Start New Trade
             </Button>
           </div>
         )}
       </div>
 
-      {/* Bank Account Selection Dialog */}
       <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Select Bank Account</DialogTitle>
           </DialogHeader>
-          <div className=\"space-y-3\">
+          <div className="space-y-3">
             {bankAccounts.map(account => (
               <button
                 key={account.id}
@@ -325,39 +318,38 @@ const P2PTrade = () => {
                   setSelectedBankAccount(account.id);
                   setShowBankDialog(false);
                 }}
-                className=\"w-full p-4 border-2 rounded-lg hover:border-blue-600 transition text-left\"
+                className="w-full p-4 border-2 rounded-lg hover:border-blue-600 transition text-left"
               >
-                <div className=\"flex items-center justify-between\">
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className=\"font-medium\">{account.bank_name}</div>
-                    <div className=\"text-sm text-slate-600\">{account.account_number}</div>
-                    <div className=\"text-sm text-slate-600\">{account.account_name}</div>
+                    <div className="font-medium">{account.bank_name}</div>
+                    <div className="text-sm text-slate-600">{account.account_number}</div>
+                    <div className="text-sm text-slate-600">{account.account_name}</div>
                   </div>
-                  {selectedBankAccount === account.id && <Check className=\"w-5 h-5 text-blue-600\" />}
+                  {selectedBankAccount === account.id && <Check className="w-5 h-5 text-blue-600" />}
                 </div>
               </button>
             ))}
-            <Button onClick={() => { setShowBankDialog(false); setShowAddBankDialog(true); }} variant=\"outline\" className=\"w-full\">
-              <Plus className=\"w-4 h-4 mr-2\" />
+            <Button onClick={() => { setShowBankDialog(false); setShowAddBankDialog(true); }} variant="outline" className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
               Add New Bank Account
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Add Bank Account Dialog */}
       <Dialog open={showAddBankDialog} onOpenChange={setShowAddBankDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Bank Account</DialogTitle>
           </DialogHeader>
-          <div className=\"space-y-4\">
+          <div className="space-y-4">
             <div>
               <Label>Bank Name</Label>
               <Input
                 value={newBankAccount.bank_name}
                 onChange={(e) => setNewBankAccount({...newBankAccount, bank_name: e.target.value})}
-                placeholder=\"e.g. First Bank of Nigeria\"
+                placeholder="e.g. First Bank of Nigeria"
               />
             </div>
             <div>
@@ -365,7 +357,7 @@ const P2PTrade = () => {
               <Input
                 value={newBankAccount.account_number}
                 onChange={(e) => setNewBankAccount({...newBankAccount, account_number: e.target.value})}
-                placeholder=\"0123456789\"
+                placeholder="0123456789"
               />
             </div>
             <div>
@@ -373,11 +365,11 @@ const P2PTrade = () => {
               <Input
                 value={newBankAccount.account_name}
                 onChange={(e) => setNewBankAccount({...newBankAccount, account_name: e.target.value})}
-                placeholder=\"Your Full Name\"
+                placeholder="Your Full Name"
               />
-              <p className=\"text-sm text-blue-600 mt-1\">⚠️ Account name must match your registered name</p>
+              <p className="text-sm text-blue-600 mt-1">⚠️ Account name must match your registered name</p>
             </div>
-            <Button onClick={handleAddBankAccount} className=\"w-full\">
+            <Button onClick={handleAddBankAccount} className="w-full">
               Add Bank Account
             </Button>
           </div>
