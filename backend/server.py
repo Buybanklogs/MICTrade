@@ -399,8 +399,8 @@ async def get_user_trades(current_user: dict = Depends(get_current_user)):
                     "rate_used": float(t[4]),
                     "total_ngn": float(t[5]),
                     "status": t[6],
-                    "created_at": t[7].isoformat() if t[7] else None,
-                    "completed_at": t[8].isoformat() if t[8] else None
+                    "created_at": t[7] if t[7] else None,
+                    "completed_at": t[8] if t[8] else None
                 }
                 for t in trades
             ]
@@ -435,8 +435,8 @@ async def get_trade(trade_id: int, current_user: dict = Depends(get_current_user
                 "total_ngn": float(trade[5]),
                 "payment_details": json.loads(trade[6]) if trade[6] else {},
                 "status": trade[7],
-                "created_at": trade[8].isoformat() if trade[8] else None,
-                "completed_at": trade[9].isoformat() if trade[9] else None
+                "created_at": trade[8] if trade[8] else None,
+                "completed_at": trade[9] if trade[9] else None
             }
         }
     finally:
@@ -467,13 +467,44 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
                 "lastname": user[2],
                 "username": user[3],
                 "phone": user[4],
-                "date_of_birth": user[5].isoformat() if user[5] else None,
+                "date_of_birth": user[5] if user[5] else None,
                 "bank_account": json.loads(user[6]) if user[6] else None,
                 "crypto_wallets": json.loads(user[7]) if user[7] else None
             }
         }
     finally:
         release_db_connection(conn)
+
+@app.put("/api/user/change-password")
+async def change_password(current_password: str, new_password: str, current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Verify current password
+        cursor.execute("SELECT password_hash FROM users WHERE id = ?", (current_user["id"],))
+        user = cursor.fetchone()
+        
+        if not user or not verify_password(current_password, user[0]):
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
+        
+        # Update password
+        new_hash = get_password_hash(new_password)
+        cursor.execute("UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", 
+                      (new_hash, current_user["id"]))
+        conn.commit()
+        
+        return {"success": True, "message": "Password changed successfully"}
+    except HTTPException as e:
+        conn.rollback()
+        raise e
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Password change error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to change password")
+    finally:
+        release_db_connection(conn)
+
 
 @app.put("/api/user/payment-info")
 async def update_payment_info(payment_info: PaymentInfoUpdate, current_user: dict = Depends(get_current_user)):
@@ -561,8 +592,8 @@ async def get_tickets(current_user: dict = Depends(get_current_user)):
                     "message": t[2],
                     "status": t[3],
                     "admin_response": t[4],
-                    "created_at": t[5].isoformat() if t[5] else None,
-                    "updated_at": t[6].isoformat() if t[6] else None
+                    "created_at": t[5] if t[5] else None,
+                    "updated_at": t[6] if t[6] else None
                 }
                 for t in tickets
             ]
@@ -617,8 +648,8 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
                     "rate_used": float(t[8]),
                     "total_ngn": float(t[9]),
                     "status": t[10],
-                    "created_at": t[11].isoformat() if t[11] else None,
-                    "completed_at": t[12].isoformat() if t[12] else None
+                    "created_at": t[11] if t[11] else None,
+                    "completed_at": t[12] if t[12] else None
                 }
                 for t in trades
             ]
@@ -732,7 +763,7 @@ async def admin_get_users(admin: dict = Depends(require_admin)):
                     "phone": u[5],
                     "role": u[6],
                     "is_active": u[7],
-                    "created_at": u[8].isoformat() if u[8] else None
+                    "created_at": u[8] if u[8] else None
                 }
                 for u in users
             ]
@@ -800,7 +831,7 @@ async def admin_get_tickets(admin: dict = Depends(require_admin)):
                     "message": t[6],
                     "status": t[7],
                     "admin_response": t[8],
-                    "created_at": t[9].isoformat() if t[9] else None
+                    "created_at": t[9] if t[9] else None
                 }
                 for t in tickets
             ]

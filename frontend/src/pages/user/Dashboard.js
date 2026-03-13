@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, History, Settings, HelpCircle, LogOut, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, History, Settings, HelpCircle, LogOut, ArrowRight, ArrowUp, ArrowDown, ChevronLeft } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
-import { auth, user, markets } from '../../lib/api';
+import { auth, user } from '../../lib/api';
+import axios from 'axios';
 import MobileNav from '../../components/MobileNav';
 
 const Dashboard = () => {
@@ -31,14 +32,17 @@ const Dashboard = () => {
 
   const fetchTopCryptos = async () => {
     try {
-      const response = await markets.getAll();
-      const data = response.data.markets;
-      const cryptoArray = [
-        { symbol: 'BTC', name: 'Bitcoin', data: data.BTC },
-        { symbol: 'ETH', name: 'Ethereum', data: data.ETH },
-        { symbol: 'USDT', name: 'Tether', data: data.USDT }
-      ];
-      setTopCryptos(cryptoArray);
+      const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
+        params: {
+          vs_currency: 'usd',
+          order: 'market_cap_desc',
+          per_page: 10,
+          page: 1,
+          sparkline: false,
+          price_change_percentage: '24h'
+        }
+      });
+      setTopCryptos(response.data);
     } catch (error) {
       console.error('Failed to fetch crypto data');
     } finally {
@@ -64,7 +68,7 @@ const Dashboard = () => {
         <div className="p-6">
           <div className="flex items-center space-x-2 mb-8">
             <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
-            <span className="text-xl font-bold">MIC Trades</span>
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">MIC Trades</span>
           </div>
 
           <nav className="space-y-2">
@@ -103,11 +107,11 @@ const Dashboard = () => {
       <div className="lg:ml-64 p-4 lg:p-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-            <p className="text-slate-600 mt-1">Welcome back to MIC Trades</p>
+            <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+            <p className="text-lg text-slate-600 mt-2">Welcome back to MIC Trades</p>
           </div>
           <Link to="/trade" className="mt-4 lg:mt-0">
-            <Button className="bg-blue-600 hover:bg-blue-700 w-full lg:w-auto" data-testid="trade-now-btn">
+            <Button className="bg-blue-600 hover:bg-blue-700 w-full lg:w-auto shadow-lg" data-testid="trade-now-btn">
               <TrendingUp className="w-5 h-5 mr-2" />
               Trade Now
             </Button>
@@ -121,25 +125,25 @@ const Dashboard = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
-              <div className="bg-white rounded-xl border border-slate-200 p-6">
-                <div className="text-slate-600 text-sm mb-2">Total Trades</div>
-                <div className="text-3xl font-bold text-slate-900" data-testid="total-trades">{stats?.total_trades || 0}</div>
+              <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div className="text-slate-600 text-sm font-medium mb-2">Total Trades</div>
+                <div className="text-4xl font-bold text-slate-900" data-testid="total-trades">{stats?.total_trades || 0}</div>
               </div>
-              <div className="bg-white rounded-xl border border-slate-200 p-6">
-                <div className="text-slate-600 text-sm mb-2">Pending</div>
-                <div className="text-3xl font-bold text-yellow-600" data-testid="pending-trades">{stats?.pending_trades || 0}</div>
+              <div className="bg-gradient-to-br from-white to-yellow-50 rounded-2xl border border-yellow-200 p-6 shadow-sm">
+                <div className="text-slate-600 text-sm font-medium mb-2">Pending</div>
+                <div className="text-4xl font-bold text-yellow-600" data-testid="pending-trades">{stats?.pending_trades || 0}</div>
               </div>
-              <div className="bg-white rounded-xl border border-slate-200 p-6">
-                <div className="text-slate-600 text-sm mb-2">Completed</div>
-                <div className="text-3xl font-bold text-green-600" data-testid="completed-trades">{stats?.completed_trades || 0}</div>
+              <div className="bg-gradient-to-br from-white to-green-50 rounded-2xl border border-green-200 p-6 shadow-sm">
+                <div className="text-slate-600 text-sm font-medium mb-2">Completed</div>
+                <div className="text-4xl font-bold text-green-600" data-testid="completed-trades">{stats?.completed_trades || 0}</div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 p-6 mb-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Quick Actions</h2>
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Link to="/trade">
-                  <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700">
+                  <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 shadow">
                     Start Trading <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
@@ -151,8 +155,9 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">Top Cryptocurrencies</h2>
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold text-slate-900 mb-2">Top Cryptocurrencies</h2>
+              <p className="text-slate-600">Live market prices and trends</p>
             </div>
 
             {cryptoLoading ? (
@@ -160,39 +165,36 @@ const Dashboard = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 {topCryptos.map((crypto) => (
-                  <div key={crypto.symbol} className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900">{crypto.name}</h3>
-                        <p className="text-sm text-slate-500">{crypto.symbol}</p>
+                  <div key={crypto.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-lg transition-all hover:border-blue-300">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <img src={crypto.image} alt={crypto.name} className="w-8 h-8 rounded-full" />
+                        <div>
+                          <h3 className="font-bold text-slate-900 text-sm">{crypto.symbol.toUpperCase()}</h3>
+                          <p className="text-xs text-slate-500">{crypto.name}</p>
+                        </div>
                       </div>
-                      <div className={`flex items-center space-x-1 px-2 py-1 rounded text-sm font-medium ${
-                        crypto.data?.usd_24h_change >= 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                      <div className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-bold ${
+                        crypto.price_change_percentage_24h >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                       }`}>
-                        {crypto.data?.usd_24h_change >= 0 ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-                        <span>{Math.abs(crypto.data?.usd_24h_change || 0).toFixed(2)}%</span>
+                        {crypto.price_change_percentage_24h >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                        <span>{Math.abs(crypto.price_change_percentage_24h || 0).toFixed(2)}%</span>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 text-sm">Price (USD)</span>
-                        <span className="font-bold text-slate-900">${crypto.data?.usd?.toLocaleString() || 'N/A'}</span>
+                    <div className="space-y-2 mb-3">
+                      <div>
+                        <span className="text-xs text-slate-500">Price</span>
+                        <div className="font-bold text-slate-900">${crypto.current_price?.toLocaleString()}</div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 text-sm">Price (NGN)</span>
-                        <span className="font-bold text-slate-900">₦{crypto.data?.ngn?.toLocaleString() || 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 text-sm">Market Cap</span>
-                        <span className="text-sm text-slate-700">${(crypto.data?.usd_market_cap / 1e9)?.toFixed(2) || 0}B</span>
+                      <div>
+                        <span className="text-xs text-slate-500">Market Cap</span>
+                        <div className="text-sm text-slate-700">${(crypto.market_cap / 1e9)?.toFixed(2)}B</div>
                       </div>
                     </div>
-                    <Link to="/trade" className="mt-4 block">
-                      <Button variant="outline" className="w-full" size="sm">
-                        Trade {crypto.symbol}
-                      </Button>
+                    <Link to="/trade">
+                      <Button variant="outline" className="w-full" size="sm">Trade</Button>
                     </Link>
                   </div>
                 ))}
