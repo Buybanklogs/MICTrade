@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
+import ProtectedRoute from './components/ProtectedRoute';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -27,20 +28,20 @@ function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           
-          {/* User Routes */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/trade" element={<P2PTrade />} />
-          <Route path="/markets" element={<Markets />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/support" element={<Support />} />
+          {/* User Protected Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/trade" element={<ProtectedRoute><P2PTrade /></ProtectedRoute>} />
+          <Route path="/markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />
+          <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
           
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/trades" element={<AdminTrades />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/rates" element={<AdminRates />} />
-          <Route path="/admin/support" element={<AdminSupport />} />
+          {/* Admin Protected Routes */}
+          <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/trades" element={<ProtectedRoute requireAdmin><AdminTrades /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/rates" element={<ProtectedRoute requireAdmin><AdminRates /></ProtectedRoute>} />
+          <Route path="/admin/support" element={<ProtectedRoute requireAdmin><AdminSupport /></ProtectedRoute>} />
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

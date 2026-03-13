@@ -808,6 +808,224 @@ async def admin_get_tickets(admin: dict = Depends(require_admin)):
     finally:
         release_db_connection(conn)
 
+# ============ USER PAYMENT METHODS ROUTES ============
+
+class PaymentMethodCreate(BaseModel):
+    bank_name: str
+    account_number: str
+    account_name: str
+
+@app.post("/api/user/payment-methods")
+async def create_payment_method(payment_method: PaymentMethodCreate, current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Check if this is the first payment method
+        cursor.execute("SELECT COUNT(*) FROM user_payment_methods WHERE user_id = ?", (current_user["id"],))
+        count = cursor.fetchone()[0]
+        is_default = 1 if count == 0 else 0
+        
+        cursor.execute("""
+            INSERT INTO user_payment_methods (user_id, bank_name, account_number, account_name, is_default)
+            VALUES (?, ?, ?, ?, ?)
+        """, (current_user["id"], payment_method.bank_name, payment_method.account_number, payment_method.account_name, is_default))
+        
+        conn.commit()
+        return {"success": True, "message": "Payment method added successfully"}
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Payment method creation error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to add payment method")
+    finally:
+        release_db_connection(conn)
+
+@app.get("/api/user/payment-methods")
+async def get_payment_methods(current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, bank_name, account_number, account_name, is_default, created_at
+            FROM user_payment_methods
+            WHERE user_id = ?
+            ORDER BY is_default DESC, created_at DESC
+        """, (current_user["id"],))
+        
+        methods = cursor.fetchall()
+        
+        return {
+            "success": True,
+            "payment_methods": [
+                {
+                    "id": m[0],
+                    "bank_name": m[1],
+                    "account_number": m[2],
+                    "account_name": m[3],
+                    "is_default": bool(m[4]),
+                    "created_at": m[5]
+                }
+                for m in methods
+            ]
+        }
+    finally:
+        release_db_connection(conn)
+
+@app.delete("/api/user/payment-methods/{method_id}")
+async def delete_payment_method(method_id: int, current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            DELETE FROM user_payment_methods
+            WHERE id = ? AND user_id = ?
+        """, (method_id, current_user["id"]))
+        
+        conn.commit()
+        return {"success": True, "message": "Payment method deleted"}
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Payment method deletion error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete payment method")
+    finally:
+        release_db_connection(conn)
+
+# ============ UPDATED TRADE ROUTES WITH PAYMENT METHODS ============
+
+class TradeCreateWithPayment(BaseModel):
+    trade_type: str
+    crypto_symbol: str
+    amount: float
+    user_wallet_address: Optional[str] = None  # For buy trades
+    user_bank_account_id: Optional[int] = None  # For sell trades
+
+@app.post("/api/trades/create")
+async def create_trade_with_payment(trade: TradeCreateWithPayment, current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Validate payment details based on trade type
+        if trade.trade_type == "buy" and not trade.user_wallet_address:
+            raise HTTPException(status_code=400, detail="Wallet address required for buy trades")
+        
+        if trade.trade_type == "sell" and not trade.user_bank_account_id:
+            raise HTTPException(status_code=400, detail="Bank account required for sell trades")
+        
+        # Get current rate
+        cursor.execute("""
+            SELECT buy_rate, sell_rate FROM crypto_rates
+            WHERE crypto_symbol = ?
+        """, (trade.crypto_symbol,))
+        
+        rate_data = cursor.fetchone()
+        if not rate_data:
+            raise HTTPException(status_code=400, detail="Invalid cryptocurrency symbol")
+        
+        rate_used = float(rate_data[0]) if trade.trade_type == "buy" else float(rate_data[1])
+        total_ngn = trade.amount * rate_used
+        
+        # Get platform payment details
+        cursor.execute("SELECT bank_name, account_number, account_name, wallet_addresses FROM payment_settings LIMIT 1")
+        payment_info = cursor.fetchone()
+        
+        import json
+        if trade.trade_type == "buy":
+            platform_payment_details = {
+                "bank_name": payment_info[0] if payment_info else "N/A",
+                "account_number": payment_info[1] if payment_info else "N/A",
+                "account_name": payment_info[2] if payment_info else "N/A"
+            }
+        else:
+            wallets = json.loads(payment_info[3]) if payment_info and payment_info[3] else {}
+            platform_payment_details = {
+                "wallet_address": wallets.get(trade.crypto_symbol, "N/A")
+            }
+        
+        # Insert trade
+        cursor.execute("""
+            INSERT INTO trades (user_id, trade_type, crypto_symbol, amount, rate_used, total_ngn, 
+                              user_wallet_address, user_bank_account_id, platform_payment_details, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        """, (
+            current_user["id"],
+            trade.trade_type,
+            trade.crypto_symbol,
+            trade.amount,
+            rate_used,
+            total_ngn,
+            trade.user_wallet_address,
+            trade.user_bank_account_id,
+            json.dumps(platform_payment_details)
+        ))
+        
+        trade_id = cursor.lastrowid
+        conn.commit()
+        
+        cursor.execute("""
+            SELECT id, trade_type, crypto_symbol, amount, rate_used, total_ngn, platform_payment_details, status, created_at
+            FROM trades WHERE id = ?
+        """, (trade_id,))
+        
+        trade_data = cursor.fetchone()
+        
+        return {
+            "success": True,
+            "message": "Trade created successfully",
+            "trade": {
+                "id": trade_data[0],
+                "trade_type": trade_data[1],
+                "crypto_symbol": trade_data[2],
+                "amount": float(trade_data[3]),
+                "rate_used": float(trade_data[4]),
+                "total_ngn": float(trade_data[5]),
+                "payment_details": json.loads(trade_data[6]) if trade_data[6] else {},
+                "status": trade_data[7],
+                "created_at": trade_data[8]
+            }
+        }
+    except HTTPException as e:
+        conn.rollback()
+        raise e
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Trade creation error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create trade")
+    finally:
+        release_db_connection(conn)
+
+# ============ USER STATS ROUTE ============
+
+@app.get("/api/user/stats")
+async def get_user_stats(current_user: dict = Depends(get_current_user)):
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # Total trades
+        cursor.execute("SELECT COUNT(*) FROM trades WHERE user_id = ?", (current_user["id"],))
+        total_trades = cursor.fetchone()[0]
+        
+        # Pending trades
+        cursor.execute("SELECT COUNT(*) FROM trades WHERE user_id = ? AND status = 'pending'", (current_user["id"],))
+        pending_trades = cursor.fetchone()[0]
+        
+        # Completed trades
+        cursor.execute("SELECT COUNT(*) FROM trades WHERE user_id = ? AND status = 'completed'", (current_user["id"],))
+        completed_trades = cursor.fetchone()[0]
+        
+        return {
+            "success": True,
+            "stats": {
+                "total_trades": total_trades,
+                "pending_trades": pending_trades,
+                "completed_trades": completed_trades
+            }
+        }
+    finally:
+        release_db_connection(conn)
+
+
 # Health check
 @app.get("/api/health")
 async def health_check():

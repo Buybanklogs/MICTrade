@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, TrendingUp, Users, Settings, HelpCircle, LogOut, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { auth, admin } from '../../lib/api';
+import MobileNav from '../../components/MobileNav';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -36,8 +37,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200">
+      <MobileNav isAdmin />
+      
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200">
         <div className="p-6">
           <div className="flex items-center space-x-2 mb-8">
             <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
@@ -78,7 +81,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="ml-64 p-8">
+      <div className="lg:ml-64 p-4 lg:p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
           <p className="text-slate-600">Welcome to MIC Trades Admin Panel</p>

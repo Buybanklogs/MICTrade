@@ -26,14 +26,18 @@ export const markets = {
 };
 
 export const trades = {
-  create: (data) => api.post('/api/trades', data),
+  create: (data) => api.post('/api/trades/create', data),
   getAll: () => api.get('/api/trades'),
   getById: (id) => api.get(`/api/trades/${id}`),
 };
 
 export const user = {
   getProfile: () => api.get('/api/user/profile'),
+  getStats: () => api.get('/api/user/stats'),
   updatePaymentInfo: (data) => api.put('/api/user/payment-info', data),
+  getPaymentMethods: () => api.get('/api/user/payment-methods'),
+  createPaymentMethod: (data) => api.post('/api/user/payment-methods', data),
+  deletePaymentMethod: (id) => api.delete(`/api/user/payment-methods/${id}`),
 };
 
 export const support = {
