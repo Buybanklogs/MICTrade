@@ -3,7 +3,7 @@ P2P Crypto Trading API Server
 FastAPI backend with SQLite/PostgreSQL support for Railway deployment
 Supports admin, staff, and user roles
 """
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, HTTPException, Depends, status, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, validator
@@ -357,15 +357,7 @@ async def login(request: Request, user: UserLogin):
 
 @app.post("/api/auth/logout")
 async def logout():
-    response = JSONResponse({"success": True, "message": "Logged out successfully"})
-    response.delete_cookie(
-        key="access_token",
-        path="/",
-        secure=True,
-        httponly=True,
-        samesite="none",
-    )
-    return response
+    return {"success": True, "message": "Logged out successfully"}
 
 
 @app.get("/api/auth/me")
