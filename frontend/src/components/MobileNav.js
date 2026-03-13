@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, TrendingUp, History, Settings, HelpCircle, LogOut, Users, DollarSign } from 'lucide-react';
+import { Menu, X, LayoutDashboard, TrendingUp, History, Settings, HelpCircle, LogOut, Users, DollarSign, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { auth } from '../lib/api';
 
-const MobileNav = ({ isAdmin = false }) => {
+const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -27,6 +27,7 @@ const MobileNav = ({ isAdmin = false }) => {
     { to: '/support', icon: HelpCircle, label: 'Support' },
   ];
 
+  // Admin sees all links
   const adminLinks = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/trades', icon: TrendingUp, label: 'Trades' },
@@ -35,7 +36,21 @@ const MobileNav = ({ isAdmin = false }) => {
     { to: '/admin/support', icon: HelpCircle, label: 'Support' },
   ];
 
-  const links = isAdmin ? adminLinks : userLinks;
+  // Staff only sees dashboard, trades, support
+  const staffLinks = [
+    { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin/trades', icon: TrendingUp, label: 'Trades' },
+    { to: '/admin/support', icon: HelpCircle, label: 'Support' },
+  ];
+
+  let links;
+  if (isAdmin) {
+    links = userRole === 'staff' ? staffLinks : adminLinks;
+  } else {
+    links = userLinks;
+  }
+
+  const isStaff = userRole === 'staff';
 
   return (
     <>
@@ -75,8 +90,11 @@ const MobileNav = ({ isAdmin = false }) => {
           </div>
 
           {isAdmin && (
-            <div className="mb-4 px-4 py-2 bg-blue-50 rounded-lg">
-              <div className="text-xs text-blue-600 font-medium">Admin Panel</div>
+            <div className={`mb-4 px-4 py-2 rounded-lg ${isStaff ? 'bg-orange-50' : 'bg-blue-50'}`}>
+              <div className={`text-xs font-medium flex items-center ${isStaff ? 'text-orange-600' : 'text-blue-600'}`}>
+                <Shield className="w-3 h-3 mr-1" />
+                {isStaff ? 'Staff Panel' : 'Admin Panel'}
+              </div>
             </div>
           )}
 

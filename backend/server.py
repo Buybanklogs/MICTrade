@@ -1,6 +1,7 @@
 """
 P2P Crypto Trading API Server
 FastAPI backend with SQLite/PostgreSQL support for Railway deployment
+Supports admin, staff, and user roles
 """
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -101,6 +102,22 @@ async def get_current_user(request: Request):
         release_db_connection(conn)
 
 
+# ============ ROLE-BASED ACCESS DEPENDENCIES ============
+
+async def require_admin(current_user: dict = Depends(get_current_user)):
+    """Requires admin role only - blocks staff and users"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
+async def require_admin_or_staff(current_user: dict = Depends(get_current_user)):
+    """Allows both admin and staff roles"""
+    if current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(status_code=403, detail="Admin or staff access required")
+    return current_user
+
+
 # ============ PYDANTIC MODELS ============
 
 class UserRegister(BaseModel):
@@ -192,7 +209,7 @@ async def register(user: UserRegister):
         # Hash password
         hashed_password = get_password_hash(user.password)
         
-        # Insert user
+        # Insert user - role is always 'user' for public registration
         if IS_POSTGRES:
             cursor.execute("""
                 INSERT INTO users (email, password_hash, firstname, lastname, username, phone, date_of_birth, role)
@@ -206,7 +223,7 @@ async def register(user: UserRegister):
                 user.username.lower(),
                 user.phone,
                 user.dateOfBirth,
-                user.role
+                "user"  # Force user role for public registration
             ))
             user_id = cursor.fetchone()[0]
         else:
@@ -221,7 +238,7 @@ async def register(user: UserRegister):
                 user.username.lower(),
                 user.phone,
                 user.dateOfBirth,
-                user.role
+                "user"  # Force user role for public registration
             ))
             user_id = cursor.lastrowid
         
@@ -265,13 +282,19 @@ async def login(request: Request, user: UserLogin):
         access_token = create_access_token(data={"sub": str(db_user[0]), "role": db_user[2]})
         
         # Determine redirect based on role
-        redirect_url = "/admin" if db_user[2] == "admin" else "/dashboard"
+        role = db_user[2]
+        if role == "admin":
+            redirect_url = "/admin"
+        elif role == "staff":
+            redirect_url = "/admin"  # Staff goes to admin panel with limited access
+        else:
+            redirect_url = "/dashboard"
         
         response = JSONResponse({
             "success": True,
             "message": "Login successful",
             "redirect": redirect_url,
-            "role": db_user[2]
+            "role": role
         })
         
         # Set HTTP-only cookie
@@ -853,17 +876,18 @@ async def reply_to_ticket(ticket_id: int, reply: TicketReplyCreate, current_user
     try:
         cursor = conn.cursor()
         
-        # Verify ticket exists and belongs to user or is admin
+        # Verify ticket exists and belongs to user or is admin/staff
         cursor.execute(param("SELECT user_id FROM support_tickets WHERE id = ?"), (ticket_id,))
         ticket = cursor.fetchone()
         
         if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
         
-        if ticket[0] != current_user["id"] and current_user["role"] != "admin":
+        # Allow ticket owner, admin, or staff to reply
+        if ticket[0] != current_user["id"] and current_user["role"] not in ["admin", "staff"]:
             raise HTTPException(status_code=403, detail="Access denied")
         
-        is_admin = current_user["role"] == "admin"
+        is_admin = current_user["role"] in ["admin", "staff"]
         
         cursor.execute(param("""
             INSERT INTO support_ticket_replies (ticket_id, user_id, message, is_admin)
@@ -886,22 +910,17 @@ async def reply_to_ticket(ticket_id: int, reply: TicketReplyCreate, current_user
         release_db_connection(conn)
 
 
-# ============ ADMIN ROUTES ============
-
-async def require_admin(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return current_user
-
+# ============ ADMIN ROUTES (Admin Only) ============
 
 @app.get("/api/admin/stats")
-async def admin_get_stats(admin: dict = Depends(require_admin)):
+async def admin_get_stats(staff_user: dict = Depends(require_admin_or_staff)):
+    """Get platform stats - accessible by admin and staff"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
         
-        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'user'")
-        total_users = cursor.fetchone()[0]
+        # Staff gets limited stats (no user count)
+        is_admin = staff_user["role"] == "admin"
         
         cursor.execute("SELECT COUNT(*) FROM trades")
         total_trades = cursor.fetchone()[0]
@@ -912,24 +931,34 @@ async def admin_get_stats(admin: dict = Depends(require_admin)):
         cursor.execute("SELECT COUNT(*) FROM trades WHERE status = 'completed'")
         completed_trades = cursor.fetchone()[0]
         
+        stats = {
+            "total_trades": total_trades,
+            "pending_trades": pending_trades,
+            "completed_trades": completed_trades
+        }
+        
+        # Only admin sees total users
+        if is_admin:
+            cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'user'")
+            stats["total_users"] = cursor.fetchone()[0]
+        else:
+            stats["total_users"] = None  # Hidden for staff
+        
         return {
             "success": True,
-            "stats": {
-                "total_users": total_users,
-                "total_trades": total_trades,
-                "pending_trades": pending_trades,
-                "completed_trades": completed_trades
-            }
+            "stats": stats
         }
     finally:
         release_db_connection(conn)
 
 
 @app.get("/api/admin/trades")
-async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(require_admin)):
+async def admin_get_trades(status: Optional[str] = None, staff_user: dict = Depends(require_admin_or_staff)):
+    """Get trades - accessible by admin and staff with different data exposure"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+        is_admin = staff_user["role"] == "admin"
         
         if status:
             cursor.execute(param("""
@@ -957,9 +986,9 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
         for t in trades:
             trade_data = {
                 "id": t[0],
-                "user_id": t[1],
-                "user_email": t[2],
-                "user_name": f"{t[3]} {t[4]}",
+                "user_id": t[1] if is_admin else None,  # Only admin sees user_id
+                "user_email": t[2] if is_admin else None,  # Only admin sees email
+                "user_name": f"{t[3]} {t[4]}",  # Staff can see name for operations
                 "trade_type": t[5],
                 "crypto_symbol": t[6],
                 "amount": float(t[7]),
@@ -968,7 +997,7 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
                 "status": t[10],
                 "created_at": str(t[11]) if t[11] else None,
                 "completed_at": str(t[12]) if t[12] else None,
-                "user_wallet_address": t[13],
+                "user_wallet_address": None,
                 "user_bank_account": None,
                 "platform_payment_details": None
             }
@@ -980,7 +1009,7 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
                 except:
                     pass
             
-            # Get user bank account details for sell trades
+            # For SELL trades: show ONLY the bank account tied to this trade (staff and admin)
             if t[5] == "sell" and t[14]:
                 cursor.execute(param("""
                     SELECT bank_name, account_number, account_name
@@ -994,6 +1023,10 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
                         "account_name": bank[2]
                     }
             
+            # For BUY trades: show ONLY the wallet address tied to this trade (staff and admin)
+            if t[5] == "buy" and t[13]:
+                trade_data["user_wallet_address"] = t[13]
+            
             result.append(trade_data)
         
         return {
@@ -1005,7 +1038,8 @@ async def admin_get_trades(status: Optional[str] = None, admin: dict = Depends(r
 
 
 @app.put("/api/admin/trades/{trade_id}/approve")
-async def admin_approve_trade(trade_id: int, admin: dict = Depends(require_admin)):
+async def admin_approve_trade(trade_id: int, staff_user: dict = Depends(require_admin_or_staff)):
+    """Approve trade - accessible by admin and staff"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -1044,7 +1078,8 @@ async def admin_approve_trade(trade_id: int, admin: dict = Depends(require_admin
 
 
 @app.put("/api/admin/trades/{trade_id}/cancel")
-async def admin_cancel_trade(trade_id: int, admin: dict = Depends(require_admin)):
+async def admin_cancel_trade(trade_id: int, staff_user: dict = Depends(require_admin_or_staff)):
+    """Cancel trade - accessible by admin and staff"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -1084,6 +1119,7 @@ async def admin_cancel_trade(trade_id: int, admin: dict = Depends(require_admin)
 
 @app.put("/api/admin/rates")
 async def admin_update_rates(rate: RateUpdate, admin: dict = Depends(require_admin)):
+    """Update rates - ADMIN ONLY"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -1106,6 +1142,7 @@ async def admin_update_rates(rate: RateUpdate, admin: dict = Depends(require_adm
 
 @app.get("/api/admin/users")
 async def admin_get_users(admin: dict = Depends(require_admin)):
+    """Get all users with full details - ADMIN ONLY"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -1132,7 +1169,7 @@ async def admin_get_users(admin: dict = Depends(require_admin)):
                 "bank_accounts": []
             }
             
-            # Get user's bank accounts
+            # Get user's bank accounts - full access for admin
             cursor.execute(param("""
                 SELECT id, bank_name, account_number, account_name, is_default
                 FROM user_payment_methods WHERE user_id = ?
@@ -1161,6 +1198,7 @@ async def admin_get_users(admin: dict = Depends(require_admin)):
 
 @app.get("/api/admin/users/{user_id}/bank-accounts")
 async def admin_get_user_bank_accounts(user_id: int, admin: dict = Depends(require_admin)):
+    """Get user bank accounts - ADMIN ONLY"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -1191,10 +1229,13 @@ async def admin_get_user_bank_accounts(user_id: int, admin: dict = Depends(requi
 
 
 @app.get("/api/admin/tickets")
-async def admin_get_tickets(admin: dict = Depends(require_admin)):
+async def admin_get_tickets(staff_user: dict = Depends(require_admin_or_staff)):
+    """Get all support tickets - accessible by admin and staff with different data exposure"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+        is_admin = staff_user["role"] == "admin"
+        
         cursor.execute("""
             SELECT st.id, st.user_id, u.email, u.firstname, u.lastname, st.subject, st.message, st.status, st.admin_response, st.created_at
             FROM support_tickets st
@@ -1209,9 +1250,9 @@ async def admin_get_tickets(admin: dict = Depends(require_admin)):
             "tickets": [
                 {
                     "id": t[0],
-                    "user_id": t[1],
-                    "user_email": t[2],
-                    "user_name": f"{t[3]} {t[4]}",
+                    "user_id": t[1] if is_admin else None,  # Only admin sees user_id
+                    "user_email": t[2] if is_admin else None,  # Only admin sees email
+                    "user_name": f"{t[3]} {t[4]}",  # Staff can see name for operations
                     "subject": t[5],
                     "message": t[6],
                     "status": t[7],
@@ -1226,10 +1267,12 @@ async def admin_get_tickets(admin: dict = Depends(require_admin)):
 
 
 @app.get("/api/admin/tickets/{ticket_id}")
-async def admin_get_ticket_details(ticket_id: int, admin: dict = Depends(require_admin)):
+async def admin_get_ticket_details(ticket_id: int, staff_user: dict = Depends(require_admin_or_staff)):
+    """Get ticket details - accessible by admin and staff"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+        is_admin = staff_user["role"] == "admin"
         
         cursor.execute(param("""
             SELECT st.id, st.subject, st.message, st.status, st.created_at, st.updated_at,
@@ -1263,7 +1306,7 @@ async def admin_get_ticket_details(ticket_id: int, admin: dict = Depends(require
                 "created_at": str(ticket[4]) if ticket[4] else None,
                 "updated_at": str(ticket[5]) if ticket[5] else None,
                 "user_name": f"{ticket[6]} {ticket[7]}",
-                "user_email": ticket[8]
+                "user_email": ticket[8] if is_admin else None  # Only admin sees email
             },
             "replies": [
                 {
@@ -1281,7 +1324,8 @@ async def admin_get_ticket_details(ticket_id: int, admin: dict = Depends(require
 
 
 @app.put("/api/admin/tickets/{ticket_id}/close")
-async def admin_close_ticket(ticket_id: int, admin: dict = Depends(require_admin)):
+async def admin_close_ticket(ticket_id: int, staff_user: dict = Depends(require_admin_or_staff)):
+    """Close ticket - accessible by admin and staff"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()

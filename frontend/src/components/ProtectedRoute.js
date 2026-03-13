@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { auth } from '../lib/api';
 
-const ProtectedRoute = ({ children, requireAdmin = false }) => {
+const ProtectedRoute = ({ children, requireAdmin = false, requireAdminOnly = false, allowedRoles = null }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
@@ -33,11 +33,30 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/signin" replace />;
   }
 
-  if (requireAdmin && user.role !== 'admin') {
+  // Check for specific allowed roles
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // If user is staff trying to access admin-only route, redirect to admin dashboard
+    if (user.role === 'staff') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
-  return children;
+  // requireAdminOnly - strictly admin, no staff
+  if (requireAdminOnly && user.role !== 'admin') {
+    if (user.role === 'staff') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // requireAdmin - allows both admin and staff
+  if (requireAdmin && !['admin', 'staff'].includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Clone children and pass user prop
+  return React.cloneElement(children, { currentUser: user });
 };
 
 export default ProtectedRoute;

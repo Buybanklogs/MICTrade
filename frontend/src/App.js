@@ -36,12 +36,14 @@ function App() {
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
           
-          {/* Admin Protected Routes */}
+          {/* Admin/Staff Protected Routes - Trades and Support accessible to both */}
           <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/trades" element={<ProtectedRoute requireAdmin><AdminTrades /></ProtectedRoute>} />
-          <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminUsers /></ProtectedRoute>} />
-          <Route path="/admin/rates" element={<ProtectedRoute requireAdmin><AdminRates /></ProtectedRoute>} />
           <Route path="/admin/support" element={<ProtectedRoute requireAdmin><AdminSupport /></ProtectedRoute>} />
+          
+          {/* Admin Only Routes - Users and Rates */}
+          <Route path="/admin/users" element={<ProtectedRoute requireAdminOnly><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/rates" element={<ProtectedRoute requireAdminOnly><AdminRates /></ProtectedRoute>} />
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

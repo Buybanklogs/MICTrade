@@ -1,20 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle, XCircle, Clock, Filter, Eye, ChevronLeft, CreditCard, Wallet } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { CheckCircle, XCircle, Filter, Eye, ChevronLeft, CreditCard, Wallet, Shield } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { toast } from 'sonner';
-import { admin } from '../../lib/api';
+import { admin, auth } from '../../lib/api';
 
-const AdminTrades = () => {
+const AdminTrades = ({ currentUser }) => {
+  const navigate = useNavigate();
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedTrade, setSelectedTrade] = useState(null);
+  const [user, setUser] = useState(currentUser || null);
 
   useEffect(() => {
+    if (!currentUser) {
+      fetchUser();
+    }
     fetchTrades();
-  }, [filter]);
+  }, [filter, currentUser]);
+
+  const fetchUser = async () => {
+    try {
+      const response = await auth.getMe();
+      setUser(response.data);
+    } catch (error) {
+      navigate('/signin');
+    }
+  };
 
   const fetchTrades = async () => {
     try {
@@ -58,6 +72,9 @@ const AdminTrades = () => {
     }
   };
 
+  const isAdmin = user?.role === 'admin';
+  const isStaff = user?.role === 'staff';
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto p-4 lg:p-8">
@@ -66,7 +83,15 @@ const AdminTrades = () => {
             <ChevronLeft className="w-4 h-4 mr-1" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Trade Management</h1>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-3xl font-bold text-slate-900">Trade Management</h1>
+            {isStaff && (
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded">
+                <Shield className="w-3 h-3 mr-1" />
+                Staff View
+              </span>
+            )}
+          </div>
           <p className="text-slate-600">Review and manage all platform trades</p>
         </div>
 
@@ -136,7 +161,10 @@ const AdminTrades = () => {
                       <td className="px-4 lg:px-6 py-4">
                         <div className="text-sm">
                           <div className="font-medium text-slate-900">{trade.user_name}</div>
-                          <div className="text-slate-500">{trade.user_email}</div>
+                          {/* Only admin sees email */}
+                          {isAdmin && trade.user_email && (
+                            <div className="text-slate-500">{trade.user_email}</div>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 lg:px-6 py-4">
@@ -200,7 +228,14 @@ const AdminTrades = () => {
       <Dialog open={!!selectedTrade} onOpenChange={() => setSelectedTrade(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Trade Details #{selectedTrade?.id}</DialogTitle>
+            <DialogTitle className="flex items-center space-x-2">
+              <span>Trade Details #{selectedTrade?.id}</span>
+              {isStaff && (
+                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
+                  Staff View
+                </span>
+              )}
+            </DialogTitle>
           </DialogHeader>
           {selectedTrade && (
             <div className="space-y-6">
@@ -228,19 +263,27 @@ const AdminTrades = () => {
                 </div>
               </div>
 
-              {/* User Info */}
+              {/* User Info - Limited for staff */}
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <div className="text-sm text-blue-600 font-medium mb-2">User Information</div>
                 <div className="text-slate-900 font-medium">{selectedTrade.user_name}</div>
-                <div className="text-slate-600">{selectedTrade.user_email}</div>
+                {/* Only admin sees email */}
+                {isAdmin && selectedTrade.user_email && (
+                  <div className="text-slate-600">{selectedTrade.user_email}</div>
+                )}
+                {isStaff && (
+                  <div className="text-xs text-blue-500 mt-1">
+                    Contact details restricted to admin
+                  </div>
+                )}
               </div>
 
-              {/* Payout Details - For SELL trades: show user's bank account */}
+              {/* Payout Details - For SELL trades: show user's bank account tied to this trade */}
               {selectedTrade.trade_type === 'sell' && (
                 <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                   <div className="flex items-center space-x-2 mb-3">
                     <CreditCard className="w-5 h-5 text-green-600" />
-                    <span className="text-sm text-green-600 font-medium">Payout To User (Bank Account)</span>
+                    <span className="text-sm text-green-600 font-medium">Payout To User (Bank Account for this Trade)</span>
                   </div>
                   {selectedTrade.user_bank_account ? (
                     <div className="bg-white rounded-lg p-4">
@@ -260,17 +303,17 @@ const AdminTrades = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-slate-500 italic">No bank account provided</div>
+                    <div className="text-slate-500 italic">No bank account provided for this trade</div>
                   )}
                 </div>
               )}
 
-              {/* Payout Details - For BUY trades: show user's wallet address */}
+              {/* Payout Details - For BUY trades: show user's wallet address tied to this trade */}
               {selectedTrade.trade_type === 'buy' && (
                 <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
                   <div className="flex items-center space-x-2 mb-3">
                     <Wallet className="w-5 h-5 text-purple-600" />
-                    <span className="text-sm text-purple-600 font-medium">Payout To User (Wallet Address)</span>
+                    <span className="text-sm text-purple-600 font-medium">Payout To User (Wallet Address for this Trade)</span>
                   </div>
                   {selectedTrade.user_wallet_address ? (
                     <div className="bg-white rounded-lg p-4">
@@ -278,7 +321,7 @@ const AdminTrades = () => {
                       <div className="font-mono text-sm break-all text-slate-900">{selectedTrade.user_wallet_address}</div>
                     </div>
                   ) : (
-                    <div className="text-slate-500 italic">No wallet address provided</div>
+                    <div className="text-slate-500 italic">No wallet address provided for this trade</div>
                   )}
                 </div>
               )}

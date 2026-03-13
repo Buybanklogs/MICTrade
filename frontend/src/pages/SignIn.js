@@ -24,8 +24,8 @@ const SignIn = () => {
       const response = await auth.login(formData);
       toast.success('Login successful!');
       
-      // Redirect based on role
-      if (response.data.role === 'admin') {
+      // Redirect based on role (admin and staff go to admin panel)
+      if (response.data.role === 'admin' || response.data.role === 'staff') {
         navigate('/admin');
       } else {
         navigate('/dashboard');
