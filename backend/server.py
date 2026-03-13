@@ -332,13 +332,15 @@ async def login(request: Request, user: UserLogin):
             "role": role
         })
         
-        # Set HTTP-only cookie for cross-site frontend/backend deployment
+        # Set HTTP-only cookie for Vercel (frontend) <-> Railway (backend) cross-site auth.
+        # We force Secure + SameSite=None because cross-site session cookies will not persist
+        # reliably with Lax/Strict in this deployment setup.
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=COOKIE_SECURE,
-            samesite=COOKIE_SAMESITE,
+            secure=True,
+            samesite="none",
             max_age=3600,
             path="/"
         )
@@ -359,9 +361,9 @@ async def logout():
     response.delete_cookie(
         key="access_token",
         path="/",
-        secure=COOKIE_SECURE,
+        secure=True,
         httponly=True,
-        samesite=COOKIE_SAMESITE,
+        samesite="none",
     )
     return response
 
