@@ -1,19 +1,57 @@
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const TOKEN_KEY = 'mic_trades_access_token';
+
+export const getAuthToken = () => localStorage.getItem(TOKEN_KEY);
+
+export const setAuthToken = (token) => {
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+};
+
+export const clearAuthToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+};
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export const auth = {
   register: (data) => api.post('/api/auth/register', data),
-  login: (data) => api.post('/api/auth/login', data),
-  logout: () => api.post('/api/auth/logout'),
+
+  login: async (data) => {
+    const response = await api.post('/api/auth/login', data);
+    if (response.data?.access_token) {
+      setAuthToken(response.data.access_token);
+    }
+    return response;
+  },
+
+  logout: async () => {
+    try {
+      await api.post('/api/auth/logout');
+    } finally {
+      clearAuthToken();
+    }
+  },
+
   getMe: () => api.get('/api/auth/me'),
 };
 
