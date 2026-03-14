@@ -1,9 +1,14 @@
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   CheckCircle,
+  HelpCircle,
+  History,
   LayoutDashboard,
+  LogOut,
+  Settings,
   TrendingUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -68,7 +73,6 @@ const UserDashboard = ({ currentUser }) => {
       const coins = await response.json();
       setTopCryptos(Array.isArray(coins) ? coins : []);
     } catch (error) {
-      console.error('Top cryptos fetch error:', error);
       toast.error('Failed to fetch top cryptocurrencies');
       setTopCryptos([]);
     }
@@ -133,54 +137,64 @@ const UserDashboard = ({ currentUser }) => {
     },
   ];
 
+  const desktopLinks = [
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, active: true },
+    { to: '/trade', label: 'Trade', icon: TrendingUp },
+    { to: '/markets', label: 'Markets', icon: TrendingUp },
+    { to: '/history', label: 'History', icon: History },
+    { to: '/settings', label: 'Settings', icon: Settings },
+    { to: '/support', label: 'Support', icon: HelpCircle },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50">
-      <MobileNav userRole="user" onLogout={handleLogout} />
+      <MobileNav />
 
       <div className="flex">
-        <aside className="hidden lg:flex w-72 min-h-screen flex-col border-r border-slate-200 bg-white px-6 py-8">
+        <aside className="hidden lg:flex w-60 min-h-screen flex-col border-r border-slate-200 bg-white px-5 py-8">
           <div className="mb-10">
             <div className="text-2xl font-black tracking-tight text-slate-900">MIC Trades</div>
             <p className="mt-1 text-sm text-slate-500">User Dashboard</p>
           </div>
 
           <nav className="space-y-2">
-            <Link
-              to="/dashboard"
-              className="flex items-center space-x-3 rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700"
-            >
-              <LayoutDashboard className="h-5 w-5" />
-              <span>Dashboard</span>
-            </Link>
+            {desktopLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                    link.active
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
 
-            <Link
-              to="/trade"
-              className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
             >
-              <ArrowRight className="h-5 w-5" />
-              <span>Trade</span>
-            </Link>
-
-            <Link
-              to="/markets"
-              className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-            >
-              <TrendingUp className="h-5 w-5" />
-              <span>Markets</span>
-            </Link>
+              <LogOut className="h-5 w-5" />
+              <span>Logout</span>
+            </button>
           </nav>
         </aside>
 
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 px-6 py-8 text-white shadow-xl sm:px-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="mb-2 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
                   MIC Trades
                 </p>
-
                 <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Dashboard</h1>
-
                 <p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">
                   Buy and sell crypto with confidence, monitor your activity in real time, and keep every transaction within easy reach.
                 </p>
@@ -189,7 +203,7 @@ const UserDashboard = ({ currentUser }) => {
               <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50 backdrop-blur">
                 Welcome back!{' '}
                 <span className="font-semibold">
-                  {profile?.firstname || currentUser?.firstname || profile?.email || currentUser?.email || 'User'}
+                  {profile?.firstname || currentUser?.firstname || 'User'}
                 </span>
               </div>
             </div>
@@ -216,6 +230,7 @@ const UserDashboard = ({ currentUser }) => {
                             {card.value}
                           </p>
                         </div>
+
                         <div className={`rounded-2xl bg-gradient-to-br ${card.accent} p-3 text-white shadow-lg`}>
                           <Icon className="h-5 w-5" />
                         </div>
@@ -225,9 +240,9 @@ const UserDashboard = ({ currentUser }) => {
                 })}
               </section>
 
-              <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <h2 className="text-2xl font-black tracking-tight text-slate-900">Quick Actions</h2>
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-500">
                   Jump into your most important actions in one click.
                 </p>
 
@@ -237,7 +252,7 @@ const UserDashboard = ({ currentUser }) => {
                     className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/40"
                   >
                     <ArrowRight className="h-6 w-6 text-blue-600" />
-                    <h3 className="mt-4 text-xl font-bold text-slate-900">Start Trading</h3>
+                    <h3 className="mt-5 text-xl font-bold text-slate-900">Start Trading</h3>
                     <p className="mt-2 text-sm text-slate-500">
                       Open a new buy or sell trade with live rates.
                     </p>
@@ -248,7 +263,7 @@ const UserDashboard = ({ currentUser }) => {
                     className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/40"
                   >
                     <TrendingUp className="h-6 w-6 text-blue-600" />
-                    <h3 className="mt-4 text-xl font-bold text-slate-900">View Markets</h3>
+                    <h3 className="mt-5 text-xl font-bold text-slate-900">View Markets</h3>
                     <p className="mt-2 text-sm text-slate-500">
                       Track live prices, market trends, and top movers.
                     </p>
@@ -256,37 +271,40 @@ const UserDashboard = ({ currentUser }) => {
                 </div>
               </section>
 
-              <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-2xl font-black tracking-tight text-slate-900">Top Cryptocurrencies</h2>
-                <p className="mt-2 text-sm text-slate-500">
+              <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <h2 className="text-2xl font-black tracking-tight text-slate-900">
+                  Top Cryptocurrencies
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
                   Live market prices and 24h movement.
                 </p>
 
                 <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {topCryptos.map((crypto) => {
                     const isPositive = Number(crypto.price_change_percentage_24h || 0) >= 0;
+
                     return (
                       <div
                         key={crypto.id}
-                        className="rounded-3xl border border-slate-200 bg-slate-50 p-6 transition hover:border-blue-200 hover:bg-white hover:shadow-sm"
+                        className="rounded-3xl border border-slate-200 bg-slate-50 p-5 transition hover:border-blue-200 hover:bg-white hover:shadow-sm"
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center gap-3">
                             <img
                               src={crypto.image}
                               alt={crypto.symbol}
-                              className="h-11 w-11 rounded-full object-cover shrink-0"
+                              className="h-11 w-11 rounded-full object-cover"
                             />
-                            <div className="min-w-0">
+                            <div>
                               <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900">
                                 {crypto.symbol}
                               </h3>
-                              <p className="truncate text-sm text-slate-500">{crypto.name}</p>
+                              <p className="text-sm text-slate-500">{crypto.name}</p>
                             </div>
                           </div>
 
                           <span
-                            className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-sm font-semibold ${
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${
                               isPositive
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : 'bg-rose-100 text-rose-700'
@@ -298,14 +316,14 @@ const UserDashboard = ({ currentUser }) => {
                         </div>
 
                         <div className="mt-6 space-y-3 text-sm">
-                          <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center justify-between gap-3">
                             <span className="text-slate-500">Price</span>
                             <span className="font-bold text-slate-900">
                               {formatCurrency(crypto.current_price)}
                             </span>
                           </div>
 
-                          <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center justify-between gap-3">
                             <span className="text-slate-500">Market Cap</span>
                             <span className="font-bold text-slate-900">
                               {formatCurrency(crypto.market_cap)}
@@ -315,7 +333,7 @@ const UserDashboard = ({ currentUser }) => {
 
                         <Link
                           to="/trade"
-                          className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+                          className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-blue-600 transition hover:text-blue-700"
                         >
                           Trade
                           <ArrowRight className="h-4 w-4" />
