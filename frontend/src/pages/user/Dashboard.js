@@ -1,25 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, History, Settings, HelpCircle, LogOut, ArrowRight, ArrowUp, ArrowDown, ChevronLeft } from 'lucide-react';
+import {
+  LayoutDashboard,
+  TrendingUp,
+  History,
+  Settings,
+  HelpCircle,
+  LogOut,
+  ArrowRight,
+  ArrowUp,
+  ArrowDown,
+  Shield,
+} from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import { auth, user } from '../../lib/api';
 import axios from 'axios';
 import MobileNav from '../../components/MobileNav';
 
-const Dashboard = () => {
+const Dashboard = ({ currentUser }) => {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [topCryptos, setTopCryptos] = useState([]);
   const [cryptoLoading, setCryptoLoading] = useState(true);
+  const [profile, setProfile] = useState(currentUser || null);
 
-  useEffect(() => {
-    fetchStats();
-    fetchTopCryptos();
-  }, []);
+  const fetchUser = useCallback(async () => {
+    try {
+      const response = await auth.getMe();
+      setProfile(response.data);
+    } catch (error) {
+      navigate('/signin');
+    }
+  }, [navigate]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await user.getStats();
       setStats(response.data.stats);
@@ -28,9 +44,9 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchTopCryptos = async () => {
+  const fetchTopCryptos = useCallback(async () => {
     try {
       const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
         params: {
@@ -39,16 +55,27 @@ const Dashboard = () => {
           per_page: 10,
           page: 1,
           sparkline: false,
-          price_change_percentage: '24h'
-        }
+          price_change_percentage: '24h',
+        },
       });
-      setTopCryptos(response.data);
+      setTopCryptos(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch crypto data');
+      console.error('Failed to fetch crypto data', error);
+      toast.error('Failed to fetch top cryptocurrencies');
     } finally {
       setCryptoLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) {
+      fetchUser();
+    } else {
+      setProfile(currentUser);
+    }
+    fetchStats();
+    fetchTopCryptos();
+  }, [currentUser, fetchUser, fetchStats, fetchTopCryptos]);
 
   const handleLogout = async () => {
     try {
@@ -60,161 +87,258 @@ const Dashboard = () => {
     }
   };
 
+  const statCards = [
+    {
+      title: 'Total Trades',
+      value: stats?.total_trades || 0,
+      icon: LayoutDashboard,
+      accent: 'from-indigo-600 to-blue-500',
+    },
+    {
+      title: 'Pending Trades',
+      value: stats?.pending_trades || 0,
+      icon: TrendingUp,
+      accent: 'from-amber-500 to-orange-500',
+    },
+    {
+      title: 'Completed',
+      value: stats?.completed_trades || 0,
+      icon: Shield,
+      accent: 'from-emerald-500 to-green-600',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50">
-      <MobileNav />
-      
-      <div className="hidden lg:block fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200">
-        <div className="p-6">
-          <div className="flex items-center space-x-2 mb-8">
-            <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">MIC Trades</span>
+      <MobileNav userRole="user" />
+
+      <div className="flex">
+        <aside className="hidden lg:flex w-72 min-h-screen flex-col border-r border-slate-200 bg-white px-6 py-8">
+          <div className="mb-10">
+            <div className="text-2xl font-black tracking-tight text-slate-900">MIC Trades</div>
+            <p className="mt-1 text-sm text-slate-500">User Dashboard</p>
           </div>
 
           <nav className="space-y-2">
-            <Link to="/dashboard" className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-50 text-blue-600 font-medium">
-              <LayoutDashboard className="w-5 h-5" />
+            <Link
+              to="/dashboard"
+              className="flex items-center space-x-3 rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700"
+            >
+              <LayoutDashboard className="h-5 w-5" />
               <span>Dashboard</span>
             </Link>
-            <Link to="/trade" className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50">
-              <TrendingUp className="w-5 h-5" />
+
+            <Link
+              to="/trade"
+              className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              <TrendingUp className="h-5 w-5" />
               <span>P2P Trade</span>
             </Link>
-            <Link to="/markets" className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50">
-              <TrendingUp className="w-5 h-5" />
+
+            <Link
+              to="/markets"
+              className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              <ArrowUp className="h-5 w-5" />
               <span>Markets</span>
             </Link>
-            <Link to="/history" className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50">
-              <History className="w-5 h-5" />
+
+            <Link
+              to="/history"
+              className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              <History className="h-5 w-5" />
               <span>History</span>
             </Link>
-            <Link to="/settings" className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50">
-              <Settings className="w-5 h-5" />
+
+            <Link
+              to="/settings"
+              className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              <Settings className="h-5 w-5" />
               <span>Settings</span>
             </Link>
-            <Link to="/support" className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50">
-              <HelpCircle className="w-5 h-5" />
+
+            <Link
+              to="/support"
+              className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              <HelpCircle className="h-5 w-5" />
               <span>Support</span>
             </Link>
-            <button onClick={handleLogout} className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 w-full">
-              <LogOut className="w-5 h-5" />
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              <LogOut className="h-5 w-5" />
               <span>Logout</span>
             </button>
           </nav>
-        </div>
-      </div>
+        </aside>
 
-      <div className="lg:ml-64 p-4 lg:p-8">
-       <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 px-6 py-8 text-white shadow-xl sm:px-8">
-  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <p className="mb-2 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
-        MIC Trades
-      </p>
+        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+          <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 px-6 py-8 text-white shadow-xl sm:px-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="mb-2 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
+                  MIC Trades
+                </p>
 
-      <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-        Dashboard
-      </h1>
+                <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+                  Dashboard
+                </h1>
 
-      <p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">
-        Stay on top of your trades, track market activity, and manage your account from one secure and seamless dashboard.
-      </p>
-    </div>
+                <p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">
+                  Buy and sell crypto with confidence, monitor your activity in real time, and keep every transaction within easy reach.
+                </p>
+              </div>
 
-    <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50 backdrop-blur">
-      Welcome back!{' '}
-      <span className="font-semibold">
-        {user?.firstname  currentUser?.firstname  user?.email  currentUser?.email  'User'}
-      </span>
-    </div>
-  </div>
-</div>
-
-        
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50 backdrop-blur">
+                Welcome back!{' '}
+                <span className="font-semibold">
+                  {profile?.firstname || currentUser?.firstname || profile?.email || currentUser?.email || 'User'}
+                </span>
+              </div>
+            </div>
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
-              <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <div className="text-slate-600 text-sm font-medium mb-2">Total Trades</div>
-                <div className="text-4xl font-bold text-slate-900" data-testid="total-trades">{stats?.total_trades || 0}</div>
-              </div>
-              <div className="bg-gradient-to-br from-white to-yellow-50 rounded-2xl border border-yellow-200 p-6 shadow-sm">
-                <div className="text-slate-600 text-sm font-medium mb-2">Pending</div>
-                <div className="text-4xl font-bold text-yellow-600" data-testid="pending-trades">{stats?.pending_trades || 0}</div>
-              </div>
-              <div className="bg-gradient-to-br from-white to-green-50 rounded-2xl border border-green-200 p-6 shadow-sm">
-                <div className="text-slate-600 text-sm font-medium mb-2">Completed</div>
-                <div className="text-4xl font-bold text-green-600" data-testid="completed-trades">{stats?.completed_trades || 0}</div>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Link to="/trade">
-                  <Button className="w-full h-12 bg-blue-600 hover:bg-blue-700 shadow">
-                    Start Trading <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-                <Link to="/markets">
-                  <Button variant="outline" className="w-full h-12">
-                    View Markets
-                  </Button>
-                </Link>
-              </div>
+          {loading ? (
+            <div className="mt-8 flex justify-center py-16">
+              <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
             </div>
-
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-slate-900 mb-2">Top Cryptocurrencies</h2>
-              <p className="text-slate-600">Live market prices and trends</p>
-            </div>
-
-            {cryptoLoading ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                {topCryptos.map((crypto) => (
-                  <div key={crypto.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-lg transition-all hover:border-blue-300">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <img src={crypto.image} alt={crypto.name} className="w-8 h-8 rounded-full" />
+          ) : (
+            <>
+              <section className="mt-8 grid gap-4 md:grid-cols-3">
+                {statCards.map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div
+                      key={card.title}
+                      className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    >
+                      <div className="flex items-start justify-between">
                         <div>
-                          <h3 className="font-bold text-slate-900 text-sm">{crypto.symbol.toUpperCase()}</h3>
-                          <p className="text-xs text-slate-500">{crypto.name}</p>
+                          <p className="text-sm font-medium text-slate-500">{card.title}</p>
+                          <p className="mt-3 text-3xl font-black tracking-tight text-slate-900">
+                            {card.value}
+                          </p>
+                        </div>
+                        <div className={`rounded-2xl bg-gradient-to-br ${card.accent} p-3 text-white shadow-lg`}>
+                          <Icon className="h-5 w-5" />
                         </div>
                       </div>
-                      <div className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-bold ${
-                        crypto.price_change_percentage_24h >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {crypto.price_change_percentage_24h >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                        <span>{Math.abs(crypto.price_change_percentage_24h || 0).toFixed(2)}%</span>
-                      </div>
                     </div>
-                    <div className="space-y-2 mb-3">
-                      <div>
-                        <span className="text-xs text-slate-500">Price</span>
-                        <div className="font-bold text-slate-900">${crypto.current_price?.toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-500">Market Cap</span>
-                        <div className="text-sm text-slate-700">${(crypto.market_cap / 1e9)?.toFixed(2)}B</div>
-                      </div>
+                  );
+                })}
+              </section>
+
+              <section className="mt-8 grid gap-6 xl:grid-cols-[0.9fr,1.1fr]">
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-5 flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900">Quick Actions</h2>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Jump into your most important actions in one click.
+                      </p>
                     </div>
-                    <Link to="/trade">
-                      <Button variant="outline" className="w-full" size="sm">Trade</Button>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Link
+                      to="/trade"
+                      className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/50"
+                    >
+                      <TrendingUp className="h-6 w-6 text-blue-600" />
+                      <h3 className="mt-4 text-base font-bold text-slate-900">Start Trading</h3>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Open a new buy or sell trade with live rates.
+                      </p>
+                    </Link>
+
+                    <Link
+                      to="/markets"
+                      className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/50"
+                    >
+                      <ArrowRight className="h-6 w-6 text-blue-600" />
+                      <h3 className="mt-4 text-base font-bold text-slate-900">View Markets</h3>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Track live prices, market trends, and top movers.
+                      </p>
                     </Link>
                   </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="mb-5 flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900">Top Cryptocurrencies</h2>
+                      <p className="mt-1 text-sm text-slate-500">Live market prices and 24h movement.</p>
+                    </div>
+                  </div>
+
+                  {cryptoLoading ? (
+                    <div className="flex justify-center py-12">
+                      <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+                      {topCryptos.map((crypto) => {
+                        const isPositive = (crypto.price_change_percentage_24h || 0) >= 0;
+                        return (
+                          <div
+                            key={crypto.id}
+                            className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200 hover:bg-white"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <h3 className="text-base font-bold text-slate-900">
+                                  {crypto.symbol?.toUpperCase()}
+                                </h3>
+                                <p className="truncate text-sm text-slate-500">{crypto.name}</p>
+                              </div>
+
+                              <span
+                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                }`}
+                              >
+                                {isPositive ? <ArrowUp className="mr-1 h-3.5 w-3.5" /> : <ArrowDown className="mr-1 h-3.5 w-3.5" />}
+                                {Math.abs(crypto.price_change_percentage_24h || 0).toFixed(2)}%
+                              </span>
+                            </div>
+
+                            <div className="mt-4 space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-slate-500">Price</span>
+                                <span className="font-semibold text-slate-900">
+                                  ${Number(crypto.current_price || 0).toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-slate-500">Market Cap</span>
+                                <span className="font-semibold text-slate-900">
+                                  ${(Number(crypto.market_cap || 0) / 1e9).toFixed(2)}B
+                                </span>
+                              </div>
+                            </div>
+
+                            <Link to="/trade" className="mt-4 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-700">
+                              Trade
+                              <ArrowRight className="ml-1 h-4 w-4" />
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </section>
+            </>
+          )}
+        </main>
       </div>
     </div>
   );
