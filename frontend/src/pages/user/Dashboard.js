@@ -235,7 +235,7 @@ const Dashboard = ({ currentUser }) => {
                 })}
               </section>
 
-              <section className="mt-8 grid gap-6 xl:grid-cols-[0.9fr,1.1fr]">
+              <section className="mt-8 space-y-6">
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="mb-5 flex items-center justify-between">
                     <div>
@@ -246,7 +246,7 @@ const Dashboard = ({ currentUser }) => {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                     <Link
                       to="/trade"
                       className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/50"
@@ -284,7 +284,7 @@ const Dashboard = ({ currentUser }) => {
                       <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-600" />
                     </div>
                   ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                       {topCryptos.map((crypto) => {
                         const isPositive = (crypto.price_change_percentage_24h || 0) >= 0;
                         return (
@@ -311,15 +311,15 @@ const Dashboard = ({ currentUser }) => {
                             </div>
 
                             <div className="mt-4 space-y-2">
-                              <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center justify-between gap-3 text-sm">
                                 <span className="text-slate-500">Price</span>
-                                <span className="font-semibold text-slate-900">
+                                <span className="text-right font-semibold text-slate-900">
                                   ${Number(crypto.current_price || 0).toLocaleString()}
                                 </span>
                               </div>
-                              <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center justify-between gap-3 text-sm">
                                 <span className="text-slate-500">Market Cap</span>
-                                <span className="font-semibold text-slate-900">
+                                <span className="text-right font-semibold text-slate-900">
                                   ${(Number(crypto.market_cap || 0) / 1e9).toFixed(2)}B
                                 </span>
                               </div>
