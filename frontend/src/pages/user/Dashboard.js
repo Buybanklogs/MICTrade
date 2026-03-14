@@ -3,12 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   CheckCircle,
-  Clock3,
   LayoutDashboard,
   TrendingUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { auth, markets, trades, user } from '../../lib/api';
+import { auth, user } from '../../lib/api';
 import MobileNav from '../../components/MobileNav';
 
 const formatCurrency = (value) => {
@@ -58,11 +57,20 @@ const UserDashboard = ({ currentUser }) => {
 
   const fetchTopCryptos = useCallback(async () => {
     try {
-      const response = await markets.getAll();
-      const coins = response.data?.markets || [];
-      setTopCryptos(Array.isArray(coins) ? coins.slice(0, 10) : []);
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&price_change_percentage=24h'
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch top cryptocurrencies');
+      }
+
+      const coins = await response.json();
+      setTopCryptos(Array.isArray(coins) ? coins : []);
     } catch (error) {
+      console.error('Top cryptos fetch error:', error);
       toast.error('Failed to fetch top cryptocurrencies');
+      setTopCryptos([]);
     }
   }, []);
 
@@ -144,6 +152,7 @@ const UserDashboard = ({ currentUser }) => {
               <LayoutDashboard className="h-5 w-5" />
               <span>Dashboard</span>
             </Link>
+
             <Link
               to="/trade"
               className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
@@ -151,19 +160,13 @@ const UserDashboard = ({ currentUser }) => {
               <ArrowRight className="h-5 w-5" />
               <span>Trade</span>
             </Link>
+
             <Link
               to="/markets"
               className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
             >
               <TrendingUp className="h-5 w-5" />
               <span>Markets</span>
-            </Link>
-            <Link
-              to="/history"
-              className="flex items-center space-x-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-            >
-              <Clock3 className="h-5 w-5" />
-              <span>History</span>
             </Link>
           </nav>
         </aside>
@@ -179,8 +182,7 @@ const UserDashboard = ({ currentUser }) => {
                 <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Dashboard</h1>
 
                 <p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">
-                  Buy and sell crypto with confidence, monitor your activity in real time,
-                  and keep every transaction within easy reach.
+                  Buy and sell crypto with confidence, monitor your activity in real time, and keep every transaction within easy reach.
                 </p>
               </div>
 
@@ -199,7 +201,7 @@ const UserDashboard = ({ currentUser }) => {
             </div>
           ) : (
             <>
-              <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <section className="mt-8 grid gap-4 md:grid-cols-3">
                 {statCards.map((card) => {
                   const Icon = card.icon;
                   return (
@@ -214,9 +216,7 @@ const UserDashboard = ({ currentUser }) => {
                             {card.value}
                           </p>
                         </div>
-                        <div
-                          className={`rounded-2xl bg-gradient-to-br ${card.accent} p-3 text-white shadow-lg`}
-                        >
+                        <div className={`rounded-2xl bg-gradient-to-br ${card.accent} p-3 text-white shadow-lg`}>
                           <Icon className="h-5 w-5" />
                         </div>
                       </div>
@@ -225,114 +225,104 @@ const UserDashboard = ({ currentUser }) => {
                 })}
               </section>
 
-              <section className="mt-8">
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-5">
-                    <h2 className="text-2xl font-black tracking-tight text-slate-900">
-                      Quick Actions
-                    </h2>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Jump into your most important actions in one click.
+              <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 className="text-2xl font-black tracking-tight text-slate-900">Quick Actions</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Jump into your most important actions in one click.
+                </p>
+
+                <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  <Link
+                    to="/trade"
+                    className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/40"
+                  >
+                    <ArrowRight className="h-6 w-6 text-blue-600" />
+                    <h3 className="mt-4 text-xl font-bold text-slate-900">Start Trading</h3>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Open a new buy or sell trade with live rates.
                     </p>
-                  </div>
+                  </Link>
 
-                  <div className="grid gap-4 sm:grid-cols-2 xl:max-w-2xl">
-                    <Link
-                      to="/trade"
-                      className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/50"
-                    >
-                      <ArrowRight className="h-6 w-6 text-blue-600" />
-                      <h3 className="mt-4 text-base font-bold text-slate-900">Start Trading</h3>
-                      <p className="mt-1 text-sm text-slate-500">
-                        Open a new buy or sell trade with live rates.
-                      </p>
-                    </Link>
-
-                    <Link
-                      to="/markets"
-                      className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/50"
-                    >
-                      <TrendingUp className="h-6 w-6 text-blue-600" />
-                      <h3 className="mt-4 text-base font-bold text-slate-900">View Markets</h3>
-                      <p className="mt-1 text-sm text-slate-500">
-                        Track live prices, market trends, and top movers.
-                      </p>
-                    </Link>
-                  </div>
+                  <Link
+                    to="/markets"
+                    className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/40"
+                  >
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
+                    <h3 className="mt-4 text-xl font-bold text-slate-900">View Markets</h3>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Track live prices, market trends, and top movers.
+                    </p>
+                  </Link>
                 </div>
               </section>
 
-              <section className="mt-8">
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-5">
-                    <h2 className="text-2xl font-black tracking-tight text-slate-900">
-                      Top Cryptocurrencies
-                    </h2>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Live market prices and 24h movement.
-                    </p>
-                  </div>
+              <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 className="text-2xl font-black tracking-tight text-slate-900">Top Cryptocurrencies</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Live market prices and 24h movement.
+                </p>
 
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                    {topCryptos.map((crypto) => {
-                      const isPositive = Number(crypto.price_change_percentage_24h || 0) >= 0;
-                      return (
-                        <div
-                          key={crypto.id || crypto.symbol}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5 transition hover:border-blue-200 hover:bg-white hover:shadow-sm"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <img
-                                src={crypto.image}
-                                alt={crypto.symbol}
-                                className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                              />
-                              <div className="min-w-0">
-                                <h3 className="text-xl font-black uppercase tracking-tight text-slate-900">
-                                  {crypto.symbol}
-                                </h3>
-                                <p className="truncate text-sm text-slate-500">{crypto.name}</p>
-                              </div>
+                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {topCryptos.map((crypto) => {
+                    const isPositive = Number(crypto.price_change_percentage_24h || 0) >= 0;
+                    return (
+                      <div
+                        key={crypto.id}
+                        className="rounded-3xl border border-slate-200 bg-slate-50 p-6 transition hover:border-blue-200 hover:bg-white hover:shadow-sm"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <img
+                              src={crypto.image}
+                              alt={crypto.symbol}
+                              className="h-11 w-11 rounded-full object-cover shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900">
+                                {crypto.symbol}
+                              </h3>
+                              <p className="truncate text-sm text-slate-500">{crypto.name}</p>
                             </div>
+                          </div>
 
-                            <span
-                              className={`inline-flex flex-shrink-0 items-center rounded-full px-3 py-1 text-sm font-semibold ${
-                                isPositive
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-rose-100 text-rose-700'
-                              }`}
-                            >
-                              {isPositive ? '↑' : '↓'}{' '}
-                              {Math.abs(Number(crypto.price_change_percentage_24h || 0)).toFixed(2)}%
+                          <span
+                            className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-sm font-semibold ${
+                              isPositive
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-rose-100 text-rose-700'
+                            }`}
+                          >
+                            {isPositive ? '↑' : '↓'}{' '}
+                            {Math.abs(Number(crypto.price_change_percentage_24h || 0)).toFixed(2)}%
+                          </span>
+                        </div>
+
+                        <div className="mt-6 space-y-3 text-sm">
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-slate-500">Price</span>
+                            <span className="font-bold text-slate-900">
+                              {formatCurrency(crypto.current_price)}
                             </span>
                           </div>
 
-                          <div className="mt-6 space-y-3 text-sm">
-                            <div className="flex items-center justify-between gap-4">
-                              <span className="text-slate-500">Price</span>
-                              <span className="font-bold text-slate-900">
-                                {formatCurrency(crypto.current_price)}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between gap-4">
-                              <span className="text-slate-500">Market Cap</span>
-                              <span className="font-bold text-slate-900">
-                                {formatCurrency(crypto.market_cap)}
-                              </span>
-                            </div>
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-slate-500">Market Cap</span>
+                            <span className="font-bold text-slate-900">
+                              {formatCurrency(crypto.market_cap)}
+                            </span>
                           </div>
-
-                          <Link
-                            to="/trade"
-                            className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
-                          >
-                            Trade <ArrowRight className="h-4 w-4" />
-                          </Link>
                         </div>
-                      );
-                    })}
-                  </div>
+
+                        <Link
+                          to="/trade"
+                          className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+                        >
+                          Trade
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             </>
