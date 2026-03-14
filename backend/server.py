@@ -99,19 +99,42 @@ async def startup_event():
 
 
 # Dependency to get current user
-async def get_current_user(request: Request):
-    token = request.cookies.get("access_token")
+def extract_bearer_token(authorization: Optional[str]) -> Optional[str]:
+    if not authorization:
+        return None
+
+    parts = authorization.strip().split(" ", 1)
+    if len(parts) != 2:
+        return None
+
+    scheme, token = parts
+    if scheme.lower() != "bearer" or not token.strip():
+        return None
+
+    return token.strip()
+
+
+async def get_current_user(
+    request: Request,
+    authorization: Optional[str] = Header(None),
+):
+    token = extract_bearer_token(authorization)
+
+    # Backward-compatible fallback for any existing cookie sessions
+    if not token:
+        token = request.cookies.get("access_token")
+
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     payload = decode_access_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -120,10 +143,13 @@ async def get_current_user(request: Request):
             FROM users WHERE id = ?
         """), (user_id,))
         user = cursor.fetchone()
-        
+
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
-        
+
+        if not user[6]:
+            raise HTTPException(status_code=403, detail="Account is disabled")
+
         return {
             "id": user[0],
             "email": user[1],
@@ -296,7 +322,7 @@ async def register(user: UserRegister):
 
 
 @app.post("/api/auth/login")
-async def login(request: Request, user: UserLogin):
+async def login(user: UserLogin):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -304,48 +330,31 @@ async def login(request: Request, user: UserLogin):
             SELECT id, password_hash, role, is_active
             FROM users WHERE email = ?
         """), (user.email.lower(),))
-        
+
         db_user = cursor.fetchone()
-        
+
         if not db_user or not verify_password(user.password, db_user[1]):
             raise HTTPException(status_code=401, detail="Invalid email or password")
-        
+
         if not db_user[3]:
             raise HTTPException(status_code=403, detail="Account is disabled")
-        
-        # Create access token
+
         access_token = create_access_token(data={"sub": str(db_user[0]), "role": db_user[2]})
-        
-        # Determine redirect based on role
+
         role = db_user[2]
-        if role == "admin":
+        if role in ["admin", "staff"]:
             redirect_url = "/admin"
-        elif role == "staff":
-            redirect_url = "/admin"  # Staff goes to admin panel with limited access
         else:
             redirect_url = "/dashboard"
-        
-        response = JSONResponse({
+
+        return {
             "success": True,
             "message": "Login successful",
             "redirect": redirect_url,
-            "role": role
-        })
-        
-        # Set HTTP-only cookie for Vercel (frontend) <-> Railway (backend) cross-site auth.
-        # We force Secure + SameSite=None because cross-site session cookies will not persist
-        # reliably with Lax/Strict in this deployment setup.
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            secure=True,
-            samesite="none",
-            max_age=3600,
-            path="/"
-        )
-        
-        return response
+            "role": role,
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
     except HTTPException as e:
         raise e
     except Exception as e:
