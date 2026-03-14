@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowDownUp, Plus, Check, ChevronLeft } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Check, ChevronLeft, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -8,19 +8,34 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../componen
 import { toast } from 'sonner';
 import { rates, trades, user } from '../../lib/api';
 
+const CRYPTO_LOGOS = {
+  BTC: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png',
+  ETH: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eth.png',
+  USDT: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdt.png',
+  BNB: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/bnb.png',
+  SOL: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png',
+  USDC: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdc.png',
+  TRX: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/trx.png',
+  XRP: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/xrp.png',
+  ADA: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ada.png',
+  LTC: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ltc.png',
+  BCH: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/bch.png',
+  TON: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ton.png',
+};
+
 const ALL_CRYPTOS = [
-  { symbol: 'BTC', name: 'Bitcoin' },
-  { symbol: 'ETH', name: 'Ethereum' },
-  { symbol: 'USDT', name: 'Tether' },
-  { symbol: 'BNB', name: 'BNB' },
-  { symbol: 'SOL', name: 'Solana' },
-  { symbol: 'USDC', name: 'USD Coin' },
-  { symbol: 'TRX', name: 'TRON' },
-  { symbol: 'XRP', name: 'XRP' },
-  { symbol: 'ADA', name: 'Cardano' },
-  { symbol: 'LTC', name: 'Litecoin' },
-  { symbol: 'BCH', name: 'Bitcoin Cash' },
-  { symbol: 'TON', name: 'Toncoin' }
+  { symbol: 'BTC', name: 'Bitcoin', image: CRYPTO_LOGOS.BTC },
+  { symbol: 'ETH', name: 'Ethereum', image: CRYPTO_LOGOS.ETH },
+  { symbol: 'USDT', name: 'Tether', image: CRYPTO_LOGOS.USDT },
+  { symbol: 'BNB', name: 'BNB', image: CRYPTO_LOGOS.BNB },
+  { symbol: 'SOL', name: 'Solana', image: CRYPTO_LOGOS.SOL },
+  { symbol: 'USDC', name: 'USD Coin', image: CRYPTO_LOGOS.USDC },
+  { symbol: 'TRX', name: 'TRON', image: CRYPTO_LOGOS.TRX },
+  { symbol: 'XRP', name: 'XRP', image: CRYPTO_LOGOS.XRP },
+  { symbol: 'ADA', name: 'Cardano', image: CRYPTO_LOGOS.ADA },
+  { symbol: 'LTC', name: 'Litecoin', image: CRYPTO_LOGOS.LTC },
+  { symbol: 'BCH', name: 'Bitcoin Cash', image: CRYPTO_LOGOS.BCH },
+  { symbol: 'TON', name: 'Toncoin', image: CRYPTO_LOGOS.TON },
 ];
 
 const P2PTrade = () => {
@@ -38,48 +53,58 @@ const P2PTrade = () => {
   const [newBankAccount, setNewBankAccount] = useState({
     bank_name: '',
     account_number: '',
-    account_name: ''
+    account_name: '',
   });
+
+  const fetchRates = useCallback(async () => {
+    try {
+      const response = await rates.getAll();
+      setCryptoRates(response.data.rates || []);
+    } catch (error) {
+      toast.error('Failed to fetch rates');
+    }
+  }, []);
+
+  const fetchBankAccounts = useCallback(async () => {
+    try {
+      const response = await user.getPaymentMethods();
+      setBankAccounts(response.data.payment_methods || []);
+    } catch (error) {
+      console.error('Failed to fetch bank accounts', error);
+    }
+  }, []);
 
   useEffect(() => {
     fetchRates();
     fetchBankAccounts();
-  }, []);
+  }, [fetchRates, fetchBankAccounts]);
 
-  const fetchRates = async () => {
-    try {
-      const response = await rates.getAll();
-      setCryptoRates(response.data.rates);
-    } catch (error) {
-      toast.error('Failed to fetch rates');
-    }
-  };
-
-  const fetchBankAccounts = async () => {
-    try {
-      const response = await user.getPaymentMethods();
-      setBankAccounts(response.data.payment_methods);
-    } catch (error) {
-      console.error('Failed to fetch bank accounts');
-    }
-  };
-
-  const getCurrentRate = () => {
-    const rate = cryptoRates.find(r => r.symbol === selectedCrypto);
+  const currentRate = useMemo(() => {
+    const rate = cryptoRates.find((r) => r.symbol === selectedCrypto);
     return rate ? (tradeType === 'buy' ? rate.buy_rate : rate.sell_rate) : 0;
-  };
+  }, [cryptoRates, selectedCrypto, tradeType]);
 
-  const calculateTotal = () => {
-    return (parseFloat(amount) || 0) * getCurrentRate();
-  };
+  const total = useMemo(() => {
+    return (parseFloat(amount) || 0) * currentRate;
+  }, [amount, currentRate]);
+
+  const selectedBank = useMemo(
+    () => bankAccounts.find((b) => b.id === selectedBankAccount) || null,
+    [bankAccounts, selectedBankAccount]
+  );
 
   const handleAddBankAccount = async () => {
+    if (!newBankAccount.bank_name || !newBankAccount.account_number || !newBankAccount.account_name) {
+      toast.error('Please complete all bank account fields');
+      return;
+    }
+
     try {
       await user.createPaymentMethod(newBankAccount);
       toast.success('Bank account added successfully');
       setShowAddBankDialog(false);
       setNewBankAccount({ bank_name: '', account_number: '', account_name: '' });
-      fetchBankAccounts();
+      await fetchBankAccounts();
     } catch (error) {
       toast.error('Failed to add bank account');
     }
@@ -91,8 +116,8 @@ const P2PTrade = () => {
       return;
     }
 
-    if (tradeType === 'buy' && !walletAddress) {
-      toast.error('Please enter your wallet address to receive ' + selectedCrypto);
+    if (tradeType === 'buy' && !walletAddress.trim()) {
+      toast.error(`Please enter your wallet address to receive ${selectedCrypto}`);
       return;
     }
 
@@ -107,10 +132,10 @@ const P2PTrade = () => {
         trade_type: tradeType,
         crypto_symbol: selectedCrypto,
         amount: parseFloat(amount),
-        user_wallet_address: tradeType === 'buy' ? walletAddress : null,
-        user_bank_account_id: tradeType === 'sell' ? selectedBankAccount : null
+        user_wallet_address: tradeType === 'buy' ? walletAddress.trim() : null,
+        user_bank_account_id: tradeType === 'sell' ? selectedBankAccount : null,
       });
-      
+
       setTradeResult(response.data.trade);
       toast.success('Trade created successfully!');
     } catch (error) {
@@ -120,268 +145,332 @@ const P2PTrade = () => {
     }
   };
 
+  const resetTradeFlow = () => {
+    setTradeResult(null);
+    setAmount('');
+    setWalletAddress('');
+    setSelectedBankAccount(null);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <Link to="/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4 font-medium">
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-slate-900">P2P Crypto Trading</h1>
-        </div>
+    <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+      <div className="mx-auto max-w-6xl">
+        <Link
+          to="/dashboard"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Link>
 
-        {!tradeResult ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:p-8">
-            <div className="flex gap-4 mb-8">
-              <Button
-                onClick={() => {
-                  setTradeType('buy');
-                  setSelectedBankAccount(null);
-                  setWalletAddress('');
-                }}
-                className={`flex-1 h-12 ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                data-testid="buy-button"
-              >
-                Buy Crypto
-              </Button>
-              <Button
-                onClick={() => {
-                  setTradeType('sell');
-                  setSelectedBankAccount(null);
-                  setWalletAddress('');
-                }}
-                className={`flex-1 h-12 ${tradeType === 'sell' ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                data-testid="sell-button"
-              >
-                Sell Crypto
-              </Button>
-            </div>
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <h1 className="text-4xl font-black tracking-tight text-slate-900">P2P Crypto Trading</h1>
 
-            <div className="mb-6">
-              <Label>Select Cryptocurrency</Label>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-2">
-                {ALL_CRYPTOS.map(crypto => (
-                  <button
-                    key={crypto.symbol}
-                    onClick={() => setSelectedCrypto(crypto.symbol)}
-                    className={`p-3 rounded-lg border-2 transition ${
-                      selectedCrypto === crypto.symbol
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                    data-testid={`crypto-${crypto.symbol}`}
+          {!tradeResult ? (
+            <div className="mt-8 space-y-8">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setTradeType('buy');
+                      setSelectedBankAccount(null);
+                      setWalletAddress('');
+                    }}
+                    className={`h-12 ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    data-testid="buy-button"
                   >
-                    <div className="font-bold text-sm lg:text-base">{crypto.symbol}</div>
-                    <div className="text-xs text-slate-600">{crypto.name}</div>
-                  </button>
-                ))}
+                    Buy Crypto
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setTradeType('sell');
+                      setSelectedBankAccount(null);
+                      setWalletAddress('');
+                    }}
+                    className={`h-12 ${tradeType === 'sell' ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    data-testid="sell-button"
+                  >
+                    Sell Crypto
+                  </Button>
+                </div>
+
+                <div className="mt-8">
+                  <Label className="text-sm font-semibold text-slate-800">Select Cryptocurrency</Label>
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    {ALL_CRYPTOS.map((crypto) => (
+                      <button
+                        key={crypto.symbol}
+                        type="button"
+                        onClick={() => setSelectedCrypto(crypto.symbol)}
+                        className={`rounded-lg border-2 p-3 text-center transition ${
+                          selectedCrypto === crypto.symbol
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                        data-testid={`crypto-${crypto.symbol}`}
+                      >
+                        <div className="mb-2 flex justify-center">
+                          <img
+                            src={crypto.image}
+                            alt={crypto.symbol}
+                            className="h-7 w-7 rounded-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="text-2xl font-black tracking-tight text-slate-900">{crypto.symbol}</div>
+                        <div className="text-sm text-slate-500">{crypto.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-8 space-y-6">
+                  <div>
+                    <Label htmlFor="amount" className="text-sm font-semibold text-slate-800">
+                      Amount (USD)
+                    </Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="mt-2 h-12"
+                      data-testid="amount-input"
+                    />
+                  </div>
+
+                  {tradeType === 'buy' && (
+                    <div>
+                      <Label htmlFor="walletAddress" className="text-sm font-semibold text-slate-800">
+                        Your {selectedCrypto} Wallet Address *
+                      </Label>
+                      <Input
+                        id="walletAddress"
+                        value={walletAddress}
+                        onChange={(e) => setWalletAddress(e.target.value)}
+                        className="mt-2 h-12"
+                        data-testid="wallet-input"
+                      />
+                      <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                        ⚠️ Double-check your wallet address. Wrong address may result in loss of funds.
+                      </p>
+                    </div>
+                  )}
+
+                  {tradeType === 'sell' && (
+                    <div>
+                      <Label className="text-sm font-semibold text-slate-800">
+                        Select Bank Account to Receive Payment *
+                      </Label>
+
+                      {selectedBank ? (
+                        <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="text-base font-bold text-slate-900">{selectedBank.bank_name}</p>
+                              <p className="mt-1 text-sm text-slate-500">{selectedBank.account_number}</p>
+                              <p className="mt-1 text-sm text-slate-600">{selectedBank.account_name}</p>
+                            </div>
+                            <Button type="button" variant="outline" onClick={() => setShowBankDialog(true)}>
+                              Change
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="mt-3 h-12 w-full"
+                          onClick={() => setShowBankDialog(true)}
+                          data-testid="choose-bank-btn"
+                        >
+                          + Choose Bank Account
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center justify-between text-sm text-slate-600">
+                      <span>Rate</span>
+                      <span className="font-semibold text-slate-900">₦{Number(currentRate || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-base">
+                      <span className="font-medium text-slate-700">
+                        You will {tradeType === 'buy' ? 'pay' : 'receive'}
+                      </span>
+                      <span className="text-lg font-black text-slate-900">₦{Number(total || 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleTrade}
+                    className="h-12 w-full"
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : 'Trade Now'}
+                  </Button>
+                </div>
               </div>
             </div>
+          ) : (
+            <div className="mt-8 rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
+              <h2 className="text-2xl font-black text-emerald-900">Trade Created Successfully!</h2>
+              <p className="mt-2 text-sm text-emerald-800">Trade ID: #{tradeResult.id}</p>
 
-            <div className="mb-6">
-              <Label htmlFor="amount">Amount (USD)</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.00000001"
-                placeholder="0.00"
-                className="h-12 text-lg mt-2"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                data-testid="amount-input"
-              />
-            </div>
+              <div className="mt-6 rounded-2xl border border-emerald-200 bg-white p-5">
+                <h3 className="text-lg font-bold text-slate-900">Payment Instructions</h3>
 
-            {tradeType === 'buy' && (
-              <div className="mb-6">
-                <Label htmlFor="wallet">Your {selectedCrypto} Wallet Address *</Label>
-                <Input
-                  id="wallet"
-                  type="text"
-                  placeholder={`Enter your ${selectedCrypto} wallet address`}
-                  className="h-12 mt-2"
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  data-testid="wallet-input"
-                />
-                <p className="text-sm text-red-600 mt-2">⚠️ Double-check your wallet address. Wrong address may result in loss of funds.</p>
-              </div>
-            )}
-
-            {tradeType === 'sell' && (
-              <div className="mb-6">
-                <Label>Select Bank Account to Receive Payment *</Label>
-                {selectedBankAccount ? (
-                  <div className="mt-2 p-4 border-2 border-blue-600 bg-blue-50 rounded-lg">
-                    <div className="flex items-center justify-between">
+                {tradeType === 'buy' ? (
+                  <div className="mt-4 space-y-3">
+                    <p className="text-sm text-slate-700">
+                      Please transfer ₦{Number(tradeResult.total_ngn || 0).toLocaleString()} to:
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-3">
                       <div>
-                        <div className="font-medium">{bankAccounts.find(b => b.id === selectedBankAccount)?.bank_name}</div>
-                        <div className="text-sm text-slate-600">{bankAccounts.find(b => b.id === selectedBankAccount)?.account_number}</div>
-                        <div className="text-sm text-slate-600">{bankAccounts.find(b => b.id === selectedBankAccount)?.account_name}</div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Bank Name</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-900">{tradeResult.payment_details.bank_name}</p>
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => setShowBankDialog(true)}>Change</Button>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account Number</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-900">{tradeResult.payment_details.account_number}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account Name</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-900">{tradeResult.payment_details.account_name}</p>
+                      </div>
                     </div>
                   </div>
                 ) : (
-                  <Button
-                    onClick={() => setShowBankDialog(true)}
-                    variant="outline"
-                    className="w-full h-12 mt-2"
-                    data-testid="choose-bank-btn"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Choose Bank Account
-                  </Button>
-                )}
-              </div>
-            )}
-
-            <div className="bg-slate-50 rounded-lg p-6 mb-6">
-              <div className="flex justify-between mb-4">
-                <span className="text-slate-600">Rate:</span>
-                <span className="font-bold">₦{getCurrentRate().toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-lg">
-                <span className="text-slate-600">You will {tradeType === 'buy' ? 'pay' : 'receive'}:</span>
-                <span className="font-bold text-blue-600">₦{calculateTotal().toLocaleString()}</span>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleTrade}
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700"
-              disabled={loading}
-              data-testid="trade-now-button"
-            >
-              {loading ? 'Processing...' : 'Trade Now'}
-            </Button>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:p-8">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ArrowDownUp className="w-8 h-8 text-green-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Trade Created Successfully!</h2>
-              <p className="text-slate-600">Trade ID: #{tradeResult.id}</p>
-            </div>
-
-            <div className="bg-slate-50 rounded-lg p-6 mb-6">
-              <h3 className="font-bold text-lg mb-4">Payment Instructions</h3>
-              
-              {tradeType === 'buy' ? (
-                <div className="space-y-2">
-                  <p className="text-slate-600">Please transfer <span className="font-bold text-slate-900">₦{tradeResult.total_ngn.toLocaleString()}</span> to:</p>
-                  <div className="bg-white rounded p-4 mt-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-xs text-slate-600">Bank Name</div>
-                        <div className="font-bold">{tradeResult.payment_details.bank_name}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-slate-600">Account Number</div>
-                        <div className="font-bold">{tradeResult.payment_details.account_number}</div>
-                      </div>
-                      <div className="col-span-full">
-                        <div className="text-xs text-slate-600">Account Name</div>
-                        <div className="font-bold">{tradeResult.payment_details.account_name}</div>
-                      </div>
+                  <div className="mt-4 space-y-3">
+                    <p className="text-sm text-slate-700">
+                      Please send {tradeResult.amount} {tradeResult.crypto_symbol} to:
+                    </p>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Wallet Address</p>
+                      <p className="mt-1 break-all rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-900">
+                        {tradeResult.payment_details.wallet_address}
+                      </p>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-slate-600">Please send <span className="font-bold text-slate-900">{tradeResult.amount} {tradeResult.crypto_symbol}</span> to:</p>
-                  <div className="bg-white rounded p-4 mt-4">
-                    <div className="text-xs text-slate-600 mb-1">Wallet Address</div>
-                    <div className="font-mono text-sm break-all">{tradeResult.payment_details.wallet_address}</div>
+                )}
+              </div>
+
+              <p className="mt-4 text-sm text-slate-600">
+                Your trade is pending confirmation. Admin will verify and complete the transaction.
+              </p>
+
+              <Button type="button" onClick={resetTradeFlow} variant="outline" className="mt-6 h-12 w-full">
+                Start New Trade
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Select Bank Account</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-3">
+              {bankAccounts.map((account) => (
+                <button
+                  key={account.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedBankAccount(account.id);
+                    setShowBankDialog(false);
+                  }}
+                  className="w-full rounded-lg border-2 border-slate-200 p-4 text-left transition hover:border-blue-600"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-bold text-slate-900">{account.bank_name}</p>
+                      <p className="text-sm text-slate-500">{account.account_number}</p>
+                      <p className="text-sm text-slate-600">{account.account_name}</p>
+                    </div>
+                    {selectedBankAccount === account.id && <Check className="h-5 w-5 text-blue-600" />}
                   </div>
-                </div>
-              )}
-            </div>
+                </button>
+              ))}
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <p className="text-yellow-800 text-sm">Your trade is pending confirmation. Admin will verify and complete the transaction.</p>
-            </div>
-
-            <Button onClick={() => { setTradeResult(null); setAmount(''); setWalletAddress(''); setSelectedBankAccount(null); }} variant="outline" className="w-full h-12">
-              Start New Trade
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select Bank Account</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            {bankAccounts.map(account => (
-              <button
-                key={account.id}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
                 onClick={() => {
-                  setSelectedBankAccount(account.id);
                   setShowBankDialog(false);
+                  setShowAddBankDialog(true);
                 }}
-                className="w-full p-4 border-2 rounded-lg hover:border-blue-600 transition text-left"
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">{account.bank_name}</div>
-                    <div className="text-sm text-slate-600">{account.account_number}</div>
-                    <div className="text-sm text-slate-600">{account.account_name}</div>
-                  </div>
-                  {selectedBankAccount === account.id && <Check className="w-5 h-5 text-blue-600" />}
-                </div>
-              </button>
-            ))}
-            <Button onClick={() => { setShowBankDialog(false); setShowAddBankDialog(true); }} variant="outline" className="w-full">
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Bank Account
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Bank Account
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
-      <Dialog open={showAddBankDialog} onOpenChange={setShowAddBankDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Bank Account</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Bank Name</Label>
-              <Input
-                value={newBankAccount.bank_name}
-                onChange={(e) => setNewBankAccount({...newBankAccount, bank_name: e.target.value})}
-                placeholder="e.g. First Bank of Nigeria"
-              />
+        <Dialog open={showAddBankDialog} onOpenChange={setShowAddBankDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Bank Account</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="bank_name">Bank Name</Label>
+                <Input
+                  id="bank_name"
+                  value={newBankAccount.bank_name}
+                  onChange={(e) =>
+                    setNewBankAccount({ ...newBankAccount, bank_name: e.target.value })
+                  }
+                  placeholder="e.g. First Bank of Nigeria"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="account_number">Account Number</Label>
+                <Input
+                  id="account_number"
+                  value={newBankAccount.account_number}
+                  onChange={(e) =>
+                    setNewBankAccount({ ...newBankAccount, account_number: e.target.value })
+                  }
+                  placeholder="0123456789"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="account_name">Account Name</Label>
+                <Input
+                  id="account_name"
+                  value={newBankAccount.account_name}
+                  onChange={(e) =>
+                    setNewBankAccount({ ...newBankAccount, account_name: e.target.value })
+                  }
+                  placeholder="Your Full Name"
+                />
+              </div>
+
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                ⚠️ Account name must match your registered name
+              </p>
+
+              <Button type="button" onClick={handleAddBankAccount} className="w-full">
+                Add Bank Account
+              </Button>
             </div>
-            <div>
-              <Label>Account Number</Label>
-              <Input
-                value={newBankAccount.account_number}
-                onChange={(e) => setNewBankAccount({...newBankAccount, account_number: e.target.value})}
-                placeholder="0123456789"
-              />
-            </div>
-            <div>
-              <Label>Account Name</Label>
-              <Input
-                value={newBankAccount.account_name}
-                onChange={(e) => setNewBankAccount({...newBankAccount, account_name: e.target.value})}
-                placeholder="Your Full Name"
-              />
-              <p className="text-sm text-blue-600 mt-1">⚠️ Account name must match your registered name</p>
-            </div>
-            <Button onClick={handleAddBankAccount} className="w-full">
-              Add Bank Account
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };
