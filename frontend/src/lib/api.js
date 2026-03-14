@@ -76,6 +76,7 @@ export const user = {
   getPaymentMethods: () => api.get('/api/user/payment-methods'),
   createPaymentMethod: (data) => api.post('/api/user/payment-methods', data),
   deletePaymentMethod: (id) => api.delete(`/api/user/payment-methods/${id}`),
+  changePassword: (data) => api.put('/api/user/change-password', data),
 };
 
 export const support = {
