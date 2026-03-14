@@ -105,13 +105,31 @@ const Dashboard = () => {
       </div>
 
       <div className="lg:ml-64 p-4 lg:p-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-            <p className="text-lg text-slate-600 mt-2">Welcome back to MIC Trades</p>
-          </div>
+       <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 px-6 py-8 text-white shadow-xl sm:px-8">
+  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p className="mb-2 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
+        MIC Trades
+      </p>
 
-        </div>
+      <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+        Dashboard
+      </h1>
+
+      <p className="mt-2 max-w-2xl text-sm text-blue-100 sm:text-base">
+        Stay on top of your trades, track market activity, and manage your account from one secure and seamless dashboard.
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50 backdrop-blur">
+      Welcome back!{' '}
+      <span className="font-semibold">
+        {user?.firstname  currentUser?.firstname  user?.email  currentUser?.email  'User'}
+      </span>
+    </div>
+  </div>
+</div>
+
         
         {loading ? (
           <div className="flex justify-center py-12">
