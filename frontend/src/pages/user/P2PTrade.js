@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowDownUp, Plus, Check, ChevronLeft } from 'lucide-react';
+import { ArrowDownUp, Plus, Check, ChevronLeft, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -128,35 +128,46 @@ const P2PTrade = () => {
             <ChevronLeft className="w-4 h-4 mr-1" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900">Exchange</h1>
-    <p className="text-slate-600">Trade cryptocurrencies</p>
+          <h1 className="text-3xl font-bold text-slate-900">P2P Crypto Trading</h1>
         </div>
 
         {!tradeResult ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:p-8">
-            <div className="flex gap-4 mb-8">
-              <Button
-                onClick={() => {
-                  setTradeType('buy');
-                  setSelectedBankAccount(null);
-                  setWalletAddress('');
-                }}
-                className={`flex-1 h-12 ${tradeType === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                data-testid="buy-button"
-              >
-                Buy Crypto
-              </Button>
-              <Button
-                onClick={() => {
-                  setTradeType('sell');
-                  setSelectedBankAccount(null);
-                  setWalletAddress('');
-                }}
-                className={`flex-1 h-12 ${tradeType === 'sell' ? 'bg-red-600 hover:bg-red-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                data-testid="sell-button"
-              >
-                Sell Crypto
-              </Button>
+            <div className="mb-8 rounded-2xl border border-slate-200 bg-slate-50/60 p-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => {
+                    setTradeType('buy');
+                    setSelectedBankAccount(null);
+                    setWalletAddress('');
+                  }}
+                  className={`flex h-12 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition ${
+                    tradeType === 'buy'
+                      ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                  }`}
+                  data-testid="buy-button"
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                  Buy Crypto
+                </Button>
+                <Button
+                  onClick={() => {
+                    setTradeType('sell');
+                    setSelectedBankAccount(null);
+                    setWalletAddress('');
+                  }}
+                  className={`flex h-12 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition ${
+                    tradeType === 'sell'
+                      ? 'border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                  }`}
+                  data-testid="sell-button"
+                >
+                  <ArrowDownRight className="h-4 w-4" />
+                  Sell Crypto
+                </Button>
+              </div>
             </div>
 
             <div className="mb-6">
@@ -313,7 +324,7 @@ const P2PTrade = () => {
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <p className="text-yellow-800 text-sm">Your trade is pending confirmation.. </p>
+              <p className="text-yellow-800 text-sm">Your trade is pending confirmation. Admin will verify and complete the transaction.</p>
             </div>
 
             <Button onClick={() => { setTradeResult(null); setAmount(''); setWalletAddress(''); setSelectedBankAccount(null); }} variant="outline" className="w-full h-12">
@@ -387,15 +398,3 @@ const P2PTrade = () => {
               />
               <p className="text-sm text-blue-600 mt-1">⚠️ Account name must match your registered name</p>
             </div>
-            <Button onClick={handleAddBankAccount} className="w-full">
-              Add Bank Account
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default P2PTrade;
-
