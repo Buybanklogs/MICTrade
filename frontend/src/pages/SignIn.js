@@ -40,16 +40,19 @@ const SignIn = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/" aria-label="Back to home" className="mt-6 mb-4 flex justify-center">
-            <img
-              src="/logo.png"
-              alt="MIC Trades logo"
-              className="h-auto w-[180px] max-w-full object-contain sm:w-[200px]"
-            />
+        <div className="text-center mb-6 sm:mb-7">
+          <Link to="/" aria-label="Back to home" className="mt-2 mb-3 flex justify-center">
+            <div className="relative rounded-[26px] border border-blue-100 bg-white/90 px-4 py-2.5 shadow-[0_18px_42px_-30px_rgba(37,99,235,0.55)]">
+              <div className="pointer-events-none absolute inset-x-7 bottom-1 h-5 rounded-full bg-blue-100/70 blur-xl" />
+              <img
+                src="/logo.png"
+                alt="MIC Trades logo"
+                className="relative h-auto w-[168px] max-w-full object-contain sm:w-[188px]"
+              />
+            </div>
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome Back</h1>
-          <p className="text-slate-600">Sign in to your account</p>
+          <h1 className="mb-1.5 text-3xl font-bold tracking-tight text-slate-900">Welcome Back</h1>
+          <p className="text-[15px] text-slate-600">Sign in to your account</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
