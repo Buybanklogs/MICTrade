@@ -12,11 +12,12 @@ const Landing = () => {
         <div className="flex items-center gap-2">
 
   <div className="overflow-hidden h-10 w-10 md:h-12 md:w-12 flex items-center justify-center">
-    <img
+   <img
       src="/logo.png"
       alt="MIC Trades"
       style={{
-        transform: "scale(2.8)",
+        padding-top: "10px",
+        transform: "scale(2.8) translateY(4px)",
         objectFit: "contain"
       }}
       className="w-full h-full"
