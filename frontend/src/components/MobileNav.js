@@ -27,7 +27,6 @@ const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
     { to: '/support', icon: HelpCircle, label: 'Support' },
   ];
 
-  // Admin sees all links
   const adminLinks = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/trades', icon: TrendingUp, label: 'Trades' },
@@ -36,7 +35,6 @@ const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
     { to: '/admin/support', icon: HelpCircle, label: 'Support' },
   ];
 
-  // Staff only sees dashboard, trades, support
   const staffLinks = [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/trades', icon: TrendingUp, label: 'Trades' },
@@ -57,9 +55,25 @@ const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-50 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <img src="/logo.png" alt="MIC Trades" className="h-8 w-auto" />
+
+          {/* Logo container */}
+          <div className="overflow-hidden h-8 w-8 flex items-center justify-center">
+            <img
+              src="/logo.png"
+              alt="MIC Trades"
+              style={{
+                paddingTop: "8px",
+                paddingBottom: "5px",
+                transform: "scale(2.8)",
+                objectFit: "contain"
+              }}
+              className="w-full h-full"
+            />
+          </div>
+
           <span className="text-lg font-bold">MIC Trades</span>
         </div>
+
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 rounded-lg hover:bg-slate-100"
@@ -84,13 +98,27 @@ const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
         }`}
       >
         <div className="p-6">
+
+          {/* Sidebar Logo */}
           <div className="flex items-center space-x-2 mb-8">
-            <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
+
+            <div className="overflow-hidden h-10 w-10 flex items-center justify-center">
+              <img
+                src="/logo.png"
+                alt="MIC Trades"
+                style={{
+                  paddingTop: "8px",
+                  paddingBottom: "5px",
+                  transform: "scale(2.8)",
+                  objectFit: "contain"
+                }}
+                className="w-full h-full"
+              />
+            </div>
+
             <span className="text-xl font-bold">MIC Trades</span>
           </div>
-
-          {isAdmin && (
-            <div className={`mb-4 px-4 py-2 rounded-lg ${isStaff ? 'bg-orange-50' : 'bg-blue-50'}`}>
+<div className={`mb-4 px-4 py-2 rounded-lg ${isStaff ? 'bg-orange-50' : 'bg-blue-50'}`}>
               <div className={`text-xs font-medium flex items-center ${isStaff ? 'text-orange-600' : 'text-blue-600'}`}>
                 <Shield className="w-3 h-3 mr-1" />
                 {isStaff ? 'Staff Panel' : 'Admin Panel'}
@@ -110,6 +138,7 @@ const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
                 <span>{link.label}</span>
               </Link>
             ))}
+
             <button
               onClick={() => {
                 setIsOpen(false);
@@ -121,6 +150,7 @@ const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
               <span>Logout</span>
             </button>
           </nav>
+
         </div>
       </div>
 
@@ -131,3 +161,5 @@ const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
 };
 
 export default MobileNav;
+
+          {isAdmin && (
