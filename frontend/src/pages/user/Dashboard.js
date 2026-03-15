@@ -146,6 +146,21 @@ const UserDashboard = ({ currentUser }) => {
     { to: '/support', label: 'Support', icon: HelpCircle },
   ];
 
+  const particles = [
+    { top: '12%', left: '18%', size: 3, delay: '0s' },
+    { top: '28%', left: '42%', size: 2, delay: '1s' },
+    { top: '18%', left: '68%', size: 2.5, delay: '2s' },
+    { top: '36%', left: '82%', size: 3.5, delay: '3s' },
+    { top: '52%', left: '72%', size: 2, delay: '1.5s' },
+    { top: '60%', left: '48%', size: 2.8, delay: '0.8s' },
+    { top: '66%', left: '26%', size: 2.2, delay: '2.4s' },
+    { top: '22%', left: '7%', size: 2, delay: '1.8s' },
+    { top: '44%', left: '15%', size: 2.6, delay: '2.9s' },
+    { top: '70%', left: '60%', size: 3, delay: '0.4s' },
+    { top: '74%', left: '80%', size: 2.4, delay: '1.2s' },
+    { top: '30%', left: '90%', size: 2, delay: '2.7s' },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50">
       <MobileNav />
@@ -188,8 +203,42 @@ const UserDashboard = ({ currentUser }) => {
         </aside>
 
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 px-6 py-8 text-white shadow-xl sm:px-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <style>{`
+            @keyframes float-slow {
+              0% { transform: translate3d(0,0,0) scale(1); opacity: 0.35; }
+              50% { transform: translate3d(6px,-4px,0) scale(1.08); opacity: 0.45; }
+              100% { transform: translate3d(-4px,6px,0) scale(0.95); opacity: 0.35; }
+            }
+          `}</style>
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 px-6 py-8 text-white shadow-2xl sm:px-8">
+            <div
+              className="absolute inset-0 opacity-90"
+              aria-hidden
+              style={{
+                background:
+                  'radial-gradient(circle at 25% 30%, rgba(96,165,250,0.22), transparent 45%), radial-gradient(circle at 70% 20%, rgba(59,130,246,0.18), transparent 38%), radial-gradient(circle at 60% 70%, rgba(59,130,246,0.12), transparent 45%), linear-gradient(120deg, #0f172a 0%, #0c2450 45%, #0a1d3f 100%)',
+              }}
+            />
+
+            <div className="absolute inset-0 pointer-events-none" aria-hidden>
+              {particles.map((p, idx) => (
+                <span
+                  key={idx}
+                  className="absolute rounded-full bg-white/30 blur-[1px]"
+                  style={{
+                    top: p.top,
+                    left: p.left,
+                    width: p.size,
+                    height: p.size,
+                    animation: 'float-slow 16s ease-in-out infinite',
+                    animationDelay: p.delay,
+                    opacity: 0.4,
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="mb-2 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
                   MIC Trades
@@ -200,7 +249,7 @@ const UserDashboard = ({ currentUser }) => {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-blue-50 backdrop-blur">
+              <div className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-blue-50 backdrop-blur">
                 Welcome back!{' '}
                 <span className="font-semibold">
                   {profile?.firstname || currentUser?.firstname || 'User'}
