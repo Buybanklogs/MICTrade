@@ -86,7 +86,8 @@ const Markets = () => {
             <ChevronLeft className="w-4 h-4 mr-1" />
             Back to Dashboard
           </Link>
-          <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">Crypto Market</h1>
+          <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">Crypto Markets</h1>
+          <p className="text-lg text-slate-600">Live cryptocurrency prices and market data</p>
         </div>
 
         {globalData && (
