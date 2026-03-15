@@ -1,4 +1,7 @@
-</button>
+aria-label="Close menu"
+          >
+            <X className="h-6 w-6" />
+          </button>
         </div>
 
         <div className="px-4 py-6">
@@ -11,6 +14,7 @@
           <nav className="space-y-1">
             {links.map((link) => {
               const Icon = link.icon;
+
               return (
                 <Link
                   key={link.to}
