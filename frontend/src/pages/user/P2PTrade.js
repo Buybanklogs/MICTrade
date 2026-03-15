@@ -9,18 +9,18 @@ import { toast } from 'sonner';
 import { rates, trades, user } from '../../lib/api';
 
 const ALL_CRYPTOS = [
-  { symbol: 'BTC', name: 'Bitcoin', logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=026' },
-  { symbol: 'ETH', name: 'Ethereum', logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png?v=026' },
-  { symbol: 'USDT', name: 'Tether', logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png?v=026' },
-  { symbol: 'BNB', name: 'BNB', logo: 'https://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=026' },
-  { symbol: 'SOL', name: 'Solana', logo: 'https://cryptologos.cc/logos/solana-sol-logo.png?v=026' },
-  { symbol: 'USDC', name: 'USD Coin', logo: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=026' },
-  { symbol: 'TRX', name: 'TRON', logo: 'https://cryptologos.cc/logos/tron-trx-logo.png?v=026' },
-  { symbol: 'XRP', name: 'XRP', logo: 'https://cryptologos.cc/logos/xrp-xrp-logo.png?v=026' },
-  { symbol: 'ADA', name: 'Cardano', logo: 'https://cryptologos.cc/logos/cardano-ada-logo.png?v=026' },
-  { symbol: 'LTC', name: 'Litecoin', logo: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=026' },
-  { symbol: 'BCH', name: 'Bitcoin Cash', logo: 'https://cryptologos.cc/logos/bitcoin-cash-bch-logo.png?v=026' },
-  { symbol: 'TON', name: 'Toncoin', logo: 'https://cryptologos.cc/logos/toncoin-ton-logo.png?v=026' }
+  { symbol: 'BTC', name: 'Bitcoin', logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png?1547033579' },
+  { symbol: 'ETH', name: 'Ethereum', logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1696501628' },
+  { symbol: 'USDT', name: 'Tether', logo: 'https://assets.coingecko.com/coins/images/325/small/Tether-logo.png?1696501661' },
+  { symbol: 'BNB', name: 'BNB', logo: 'https://assets.coingecko.com/coins/images/825/small/binance-coin-logo.png?1709700585' },
+  { symbol: 'SOL', name: 'Solana', logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png?1696504756' },
+  { symbol: 'USDC', name: 'USD Coin', logo: 'https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png?1696506364' },
+  { symbol: 'TRX', name: 'TRON', logo: 'https://assets.coingecko.com/coins/images/1094/small/tron-logo.png?1696511556' },
+  { symbol: 'XRP', name: 'XRP', logo: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png?1696501423' },
+  { symbol: 'ADA', name: 'Cardano', logo: 'https://assets.coingecko.com/coins/images/975/small/cardano.png?1696512269' },
+  { symbol: 'LTC', name: 'Litecoin', logo: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png?1696501400' },
+  { symbol: 'BCH', name: 'Bitcoin Cash', logo: 'https://assets.coingecko.com/coins/images/780/small/bitcoin-cash-circle.png?1696501999' },
+  { symbol: 'TON', name: 'Toncoin', logo: 'https://assets.coingecko.com/coins/images/17980/small/ton_symbol.png?1696517498' }
 ];
 
 const P2PTrade = () => {
@@ -215,7 +215,7 @@ const P2PTrade = () => {
                   onChange={(e) => setWalletAddress(e.target.value)}
                   data-testid="wallet-input"
                 />
-                <p className="text-sm text-red-600 mt-2">Ã¢Å¡Â Ã¯Â¸Â Double-check your wallet address. Wrong address may result in loss of funds.</p>
+                <p className="text-sm text-red-600 mt-2">⚠️ Double-check your wallet address. Wrong address may result in loss of funds.</p>
               </div>
             )}
 
@@ -250,11 +250,11 @@ const P2PTrade = () => {
             <div className="bg-slate-50 rounded-lg p-6 mb-6">
               <div className="flex justify-between mb-4">
                 <span className="text-slate-600">Rate:</span>
-                <span className="font-bold">Ã¢â€šÂ¦{getCurrentRate().toLocaleString()}</span>
+                <span className="font-bold">₦{getCurrentRate().toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-lg">
                 <span className="text-slate-600">You will {tradeType === 'buy' ? 'pay' : 'receive'}:</span>
-                <span className="font-bold text-blue-600">Ã¢â€šÂ¦{calculateTotal().toLocaleString()}</span>
+                <span className="font-bold text-blue-600">₦{calculateTotal().toLocaleString()}</span>
               </div>
             </div>
 
@@ -282,7 +282,7 @@ const P2PTrade = () => {
               
               {tradeType === 'buy' ? (
                 <div className="space-y-2">
-                  <p className="text-slate-600">Please transfer <span className="font-bold text-slate-900">Ã¢â€šÂ¦{tradeResult.total_ngn.toLocaleString()}</span> to:</p>
+                  <p className="text-slate-600">Please transfer <span className="font-bold text-slate-900">₦{tradeResult.total_ngn.toLocaleString()}</span> to:</p>
                   <div className="bg-white rounded p-4 mt-4">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
@@ -384,7 +384,7 @@ const P2PTrade = () => {
                 onChange={(e) => setNewBankAccount({...newBankAccount, account_name: e.target.value})}
                 placeholder="Your Full Name"
               />
-              <p className="text-sm text-blue-600 mt-1">Ã¢Å¡Â Ã¯Â¸Â Account name must match your registered name</p>
+              <p className="text-sm text-blue-600 mt-1">⚠️ Account name must match your registered name</p>
             </div>
             <Button onClick={handleAddBankAccount} className="w-full">
               Add Bank Account
@@ -397,3 +397,4 @@ const P2PTrade = () => {
 };
 
 export default P2PTrade;
+
