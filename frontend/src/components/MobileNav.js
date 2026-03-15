@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, TrendingUp, History, Settings, HelpCircle, LogOut, Users, DollarSign, Shield } from 'lucide-react';
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  TrendingUp,
+  History,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Users,
+  DollarSign,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { auth } from '../lib/api';
 
@@ -41,125 +52,125 @@ const MobileNav = ({ isAdmin = false, userRole = 'user' }) => {
     { to: '/admin/support', icon: HelpCircle, label: 'Support' },
   ];
 
-  let links;
-  if (isAdmin) {
-    links = userRole === 'staff' ? staffLinks : adminLinks;
-  } else {
-    links = userLinks;
-  }
-
+  const links = isAdmin ? (userRole === 'staff' ? staffLinks : adminLinks) : userLinks;
   const isStaff = userRole === 'staff';
+
+  const Brand = ({ compact = false }) => (
+    <div className={`flex items-center ${compact ? 'gap-2.5' : 'gap-3'}`}>
+      <div
+        className={`overflow-hidden flex items-center justify-center ${
+          compact ? 'h-9 w-9' : 'h-10 w-10'
+        }`}
+      >
+        <img
+          src="/logo.png"
+          alt="MIC Trades"
+          style={{
+            paddingTop: '8px',
+            paddingBottom: '5px',
+            transform: 'scale(2.8)',
+            objectFit: 'contain',
+          }}
+          className="h-full w-full"
+        />
+      </div>
+
+      <div className="min-w-0">
+        <div
+          className={`truncate font-semibold tracking-tight text-slate-900 ${
+            compact ? 'text-[1.15rem]' : 'text-[1.2rem]'
+          }`}
+        >
+          MIC Trades
+        </div>
+        {isAdmin && !compact && (
+          <div className="text-[11px] font-medium tracking-[0.14em] text-slate-400 uppercase">
+            {isStaff ? 'Staff Panel' : 'Admin Panel'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <>
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-50 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="flex items-center justify-between px-4 py-4">
+          <Brand />
 
-          {/* Logo container */}
-          <div className="overflow-hidden h-8 w-8 flex items-center justify-center">
-            <img
-              src="/logo.png"
-              alt="MIC Trades"
-              style={{
-                paddingTop: "8px",
-                paddingBottom: "5px",
-                transform: "scale(2.8)",
-                objectFit: "contain"
-              }}
-              className="w-full h-full"
-            />
-          </div>
-
-          <span className="text-lg font-bold">MIC Trades</span>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="rounded-lg p-2 text-blue-600 transition hover:bg-slate-100"
+            data-testid="mobile-menu-toggle"
+          >
+            {isOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+          </button>
         </div>
+      </header>
 
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg hover:bg-slate-100"
-          data-testid="mobile-menu-toggle"
-        >
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-
-      {/* Mobile Menu Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 z-40 bg-black/30"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Mobile Sidebar */}
-      <div
-        className={`lg:hidden fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 z-50 transform transition-transform duration-300 ${
+      <aside
+        className={`lg:hidden fixed top-0 left-0 z-50 h-full w-80 max-w-[85vw] transform bg-white shadow-xl transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-6">
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
+          <Brand compact />
+          <button
+            onClick={() => setIsOpen(false)}
+            className="rounded-lg p-2 text-blue-600 transition hover:bg-slate-100"
+          >
+            <X className="h-6 w-6" />
 
-          {/* Sidebar Logo */}
-          <div className="flex items-center space-x-2 mb-8">
+              </button>
+        </div>
 
-            <div className="overflow-hidden h-10 w-10 flex items-center justify-center">
-              <img
-                src="/logo.png"
-                alt="MIC Trades"
-                style={{
-                  paddingTop: "8px",
-                  paddingBottom: "5px",
-                  transform: "scale(2.8)",
-                  objectFit: "contain"
-                }}
-                className="w-full h-full"
-              />
-            </div>
-
-            <span className="text-xl font-bold">MIC Trades</span>
-          </div>
-<div className={`mb-4 px-4 py-2 rounded-lg ${isStaff ? 'bg-orange-50' : 'bg-blue-50'}`}>
-              <div className={`text-xs font-medium flex items-center ${isStaff ? 'text-orange-600' : 'text-blue-600'}`}>
-                <Shield className="w-3 h-3 mr-1" />
-                {isStaff ? 'Staff Panel' : 'Admin Panel'}
-              </div>
+        <div className="px-4 py-6">
+          {isAdmin && (
+            <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700">
+              {isStaff ? 'Staff Panel' : 'Admin Panel'}
             </div>
           )}
 
-          <nav className="space-y-2">
-            {links.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setIsOpen(false)}
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50"
-              >
-                <link.icon className="w-5 h-5" />
-                <span>{link.label}</span>
-              </Link>
-            ))}
+          <nav className="space-y-1">
+            {links.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center space-x-3 rounded-lg px-4 py-3 text-slate-600 transition hover:bg-slate-50"
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
 
             <button
               onClick={() => {
                 setIsOpen(false);
                 handleLogout();
               }}
-              className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-50 w-full"
+              className="flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-slate-600 transition hover:bg-slate-50"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="h-5 w-5" />
               <span>Logout</span>
             </button>
           </nav>
-
         </div>
-      </div>
+      </aside>
 
-      {/* Spacer for mobile header */}
-      <div className="lg:hidden h-16" />
+      <div className="h-[81px] lg:hidden" />
     </>
   );
 };
 
 export default MobileNav;
-
-          {isAdmin && (
