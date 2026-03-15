@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, Zap, TrendingUp, Users } from 'lucide-react';
@@ -5,153 +6,183 @@ import { Button } from '../components/ui/button';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
-            <span className="text-xl font-bold text-slate-900">MIC Trades</span>
-          </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-slate-600 hover:text-blue-600 transition">Features</a>
-            <a href="#rates" className="text-slate-600 hover:text-blue-600 transition">Rates</a>
-            <a href="#about" className="text-slate-600 hover:text-blue-600 transition">About</a>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <Link to="/" className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <img
+              src="/logo.png"
+              alt="MIC Trades logo"
+              className="h-9 w-9 shrink-0 object-contain sm:h-11 sm:w-11 lg:h-12 lg:w-12"
+            />
+            <div className="min-w-0">
+              <div className="truncate text-[1.65rem] font-black tracking-[-0.03em] text-slate-900 sm:text-[1.8rem] lg:text-[1.95rem]">
+                MIC Trades
+              </div>
+              <div className="hidden text-xs font-medium tracking-[0.16em] text-slate-400 sm:block">
+                P2P EXCHANGE
+              </div>
+            </div>
+          </Link>
+
+          <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 lg:flex">
+            <a href="#features" className="transition hover:text-blue-600">Features</a>
+            <a href="#rates" className="transition hover:text-blue-600">Rates</a>
+            <a href="#about" className="transition hover:text-blue-600">About</a>
           </nav>
-          <div className="flex items-center space-x-4">
-            <Link to="/signin">
-              <Button variant="ghost" size="sm">Sign In</Button>
+
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link
+              to="/signin"
+              className="text-sm font-semibold text-slate-700 transition hover:text-blue-600"
+            >
+              Sign In
             </Link>
             <Link to="/signup">
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">Get Started</Button>
+              <Button className="h-10 rounded-xl bg-blue-600 px-4 text-sm font-semibold hover:bg-blue-700 sm:px-5">
+                Get Started
+              </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <main>
+        <section className="mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-20">
           <div>
-            <div className="inline-block bg-blue-50 text-blue-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Shield className="inline w-4 h-4 mr-2" />
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
+              <Shield className="h-4 w-4" />
               Trusted P2P Crypto Platform
             </div>
-            <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+
+            <h1 className="max-w-2xl text-5xl font-black leading-[0.95] tracking-[-0.04em] text-slate-900 sm:text-6xl lg:text-7xl">
               Trade Crypto with <span className="text-blue-600">Naira</span> Instantly
             </h1>
-            <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-              Buy and sell Bitcoin, Ethereum, and USDT with Nigerian Naira. Fast, secure, and reliable P2P cryptocurrency trading platform.
+
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
+              Buy and sell Bitcoin, Ethereum, and USDT with Nigerian Naira. Fast,
+              secure, and reliable P2P cryptocurrency trading platform.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link to="/signup">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-                  Start Trading <ArrowRight className="ml-2 w-5 h-5" />
+                <Button className="h-12 rounded-xl bg-blue-600 px-7 text-base font-semibold hover:bg-blue-700">
+                  Start Trading
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/signin">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                <Button variant="outline" className="h-12 rounded-xl px-7 text-base font-semibold">
                   Sign In
                 </Button>
               </Link>
             </div>
-            <div className="mt-8 flex items-center space-x-6 text-sm text-slate-600">
-              <div className="flex items-center">
-                <Shield className="w-4 h-4 mr-2 text-blue-600" />
+
+            <div className="mt-8 flex flex-wrap gap-6 text-sm font-medium text-slate-500">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-blue-600" />
                 Secure Transactions
               </div>
-              <div className="flex items-center">
-                <Zap className="w-4 h-4 mr-2 text-blue-600" />
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-blue-600" />
                 Instant Settlement
               </div>
             </div>
           </div>
-          <div className="relative">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-8 shadow-2xl">
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                <div className="text-white/80 text-sm mb-2">Current Rate</div>
-                <div className="text-3xl font-bold text-white mb-4">₦45,000,000</div>
-                <div className="text-white/60 text-sm">1 BTC</div>
-              </div>
+
+          <div className="rounded-3xl bg-gradient-to-r from-blue-700 to-blue-600 p-8 shadow-[0_24px_60px_rgba(37,99,235,0.22)]">
+            <div className="rounded-3xl border border-white/20 bg-white/10 p-8 text-white backdrop-blur">
+              <p className="text-sm font-medium text-blue-100">Current Rate</p>
+              <p className="mt-4 text-5xl font-black tracking-[-0.04em]">₦45,000,000</p>
+              <p className="mt-4 text-blue-100">1 BTC</p>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features */}
-      <section id="features" className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">Why Choose MIC Trades?</h2>
-            <p className="text-xl text-slate-600">Fast, secure, and reliable crypto trading</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 hover:border-blue-200 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                <Shield className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-4">Secure Trading</h3>
-              <p className="text-slate-600">Bank-level security with escrow protection for all transactions</p>
+        <section id="features" className="border-t border-slate-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-4xl font-black tracking-[-0.03em] text-slate-900">
+                Why Choose MIC Trades?
+              </h2>
+              <p className="mt-4 text-lg text-slate-600">
+                Fast, secure, and reliable crypto trading
+              </p>
             </div>
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 hover:border-blue-200 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                <Zap className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-4">Instant Processing</h3>
-              <p className="text-slate-600">Quick verification and instant fund release after confirmation</p>
-            </div>
-            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 hover:border-blue-200 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-4">Best Rates</h3>
-              <p className="text-slate-600">Competitive rates for buying and selling cryptocurrency</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Stats */}
-      <section className="py-20 bg-slate-900">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-blue-400 mb-2">2M+</div>
-              <div className="text-slate-400">Trades Completed</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-400 mb-2">₦75B+</div>
-              <div className="text-slate-400">Trading Volume</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-400 mb-2">50K+</div>
-              <div className="text-slate-400">Active Users</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-400 mb-2">99.8%</div>
-              <div className="text-slate-400">Success Rate</div>
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  icon: Shield,
+                  title: 'Secure Trading',
+                  text: 'Bank-level security with escrow protection for all transactions',
+                },
+                {
+                  icon: Zap,
+                  title: 'Instant Processing',
+                  text: 'Quick verification and instant fund release after confirmation',
+                },
+                {
+                  icon: TrendingUp,
+                  title: 'Best Rates',
+                  text: 'Competitive rates for buying and selling cryptocurrency',
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="rounded-3xl border border-slate-200 bg-slate-50 p-8 shadow-sm">
+                    <div className="mb-5 inline-flex rounded-2xl bg-blue-50 p-3 text-blue-600">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">{item.title}</h3>
+                    <p className="mt-3 leading-7 text-slate-600">{item.text}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold text-slate-900 mb-6">Ready to Start Trading?</h2>
-          <p className="text-xl text-slate-600 mb-8">Join thousands of users trading crypto with Naira</p>
-          <Link to="/signup">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-              Create Free Account <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+        <section id="rates" className="border-t border-slate-200 bg-slate-50">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="grid gap-6 md:grid-cols-4">
+              {[
+                { value: '2M+', label: 'Trades Completed' },
+                { value: '₦75B+', label: 'Trading Volume' },
+                { value: '50K+', label: 'Active Users' },
+                { value: '99.8%', label: 'Success Rate' },
+              ].map((item) => (
+                <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+                  <div className="text-4xl font-black tracking-[-0.03em] text-slate-900">{item.value}</div>
+                  <div className="mt-3 text-sm font-medium text-slate-500">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-8">
-        <div className="max-w-7xl mx-auto px-6 text-center text-slate-600">
-          <p>© 2025 MIC Trades. All rights reserved.</p>
+        <section id="about" className="border-t border-slate-200 bg-white">
+          <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8">
+            <h2 className="text-4xl font-black tracking-[-0.03em] text-slate-900">
+              Ready to Start Trading?
+            </h2>
+            <p className="mt-4 text-lg text-slate-600">
+              Join thousands of users trading crypto with Naira
+            </p>
+            <div className="mt-8">
+              <Link to="/signup">
+                <Button className="h-12 rounded-xl bg-blue-600 px-8 text-base font-semibold hover:bg-blue-700">
+                  Create Free Account
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
+          © 2025 MIC Trades. All rights reserved.
         </div>
       </footer>
     </div>
