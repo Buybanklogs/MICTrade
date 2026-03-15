@@ -286,25 +286,25 @@ const UserDashboard = ({ currentUser }) => {
                     return (
                       <div
                         key={crypto.id}
-                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200 hover:bg-white hover:shadow-sm sm:rounded-3xl sm:p-5"
+                        className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 transition hover:border-blue-200 hover:bg-white hover:shadow-sm sm:rounded-3xl sm:p-4 md:p-5"
                       >
-                        <div className="flex items-start justify-between gap-2 sm:gap-3">
-                          <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="flex items-start justify-between gap-1.5 sm:gap-3">
+                          <div className="flex items-center gap-2">
                             <img
                               src={crypto.image}
                               alt={crypto.symbol}
-                              className="h-9 w-9 rounded-full object-cover sm:h-11 sm:w-11"
+                              className="h-8 w-8 rounded-full object-cover sm:h-10 sm:w-10"
                             />
                             <div>
-                              <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 sm:text-2xl">
+                              <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 sm:text-xl">
                                 {crypto.symbol}
                               </h3>
-                              <p className="text-sm text-slate-500">{crypto.name}</p>
+                              <p className="text-xs text-slate-500 sm:text-sm">{crypto.name}</p>
                             </div>
                           </div>
 
                           <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold sm:px-3 sm:py-1 sm:text-sm ${
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold sm:px-2.5 sm:py-0.5 sm:text-xs md:px-3 md:py-1 md:text-sm ${
                               isPositive
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : 'bg-rose-100 text-rose-700'
@@ -315,17 +315,17 @@ const UserDashboard = ({ currentUser }) => {
                           </span>
                         </div>
 
-                        <div className="mt-4 space-y-2 text-sm sm:mt-6 sm:space-y-3">
+                        <div className="mt-3 space-y-2 text-[13px] sm:mt-5 sm:space-y-2.5 sm:text-sm">
                           <div className="flex items-center justify-between gap-3">
                             <span className="text-slate-500">Price</span>
-                            <span className="font-bold text-slate-900">
+                            <span className="font-semibold text-slate-900">
                               {formatCurrency(crypto.current_price)}
                             </span>
                           </div>
 
                           <div className="flex items-center justify-between gap-3">
                             <span className="text-slate-500">Market Cap</span>
-                            <span className="font-bold text-slate-900">
+                            <span className="font-semibold text-slate-900">
                               {formatCurrency(crypto.market_cap)}
                             </span>
                           </div>
@@ -333,10 +333,10 @@ const UserDashboard = ({ currentUser }) => {
 
                         <Link
                           to="/trade"
-                          className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 transition hover:text-blue-700 sm:mt-6"
+                          className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 transition hover:text-blue-700 sm:mt-5 sm:text-sm sm:gap-2"
                         >
                           Trade
-                          <ArrowRight className="h-4 w-4" />
+                          <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Link>
                       </div>
                     );
