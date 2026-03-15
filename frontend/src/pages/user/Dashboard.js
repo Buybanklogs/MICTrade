@@ -209,6 +209,17 @@ const UserDashboard = ({ currentUser }) => {
               50% { transform: translate3d(6px,-4px,0) scale(1.08); opacity: 0.45; }
               100% { transform: translate3d(-4px,6px,0) scale(0.95); opacity: 0.35; }
             }
+            [data-testid="mobile-menu-toggle"] {
+              color: #2563eb;
+              border: 1px solid rgba(37, 99, 235, 0.12);
+              background: rgba(239, 246, 255, 0.92);
+              box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+              transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            }
+            [data-testid="mobile-menu-toggle"]:hover {
+              background: rgba(219, 234, 254, 0.92);
+              border-color: rgba(37, 99, 235, 0.18);
+            }
           `}</style>
           <div className="relative overflow-hidden rounded-3xl border border-white/12 bg-[#0a1f52] px-6 py-8 text-white shadow-2xl sm:px-8">
             <div
@@ -289,7 +300,11 @@ const UserDashboard = ({ currentUser }) => {
                 })}
               </section>
 
-              <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <section className="relative mt-8 overflow-hidden rounded-3xl border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/40 sm:p-6">
+                <div
+                  className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-blue-200/90 to-transparent"
+                  aria-hidden
+                />
                 <h2 className="text-2xl font-black tracking-tight text-slate-900">Quick Actions</h2>
                 <p className="mt-1 text-sm text-slate-500">
                   Jump into your most important actions in one click.
@@ -298,7 +313,7 @@ const UserDashboard = ({ currentUser }) => {
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   <Link
                     to="/trade"
-                    className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/40"
+                    className="rounded-2xl border border-blue-100 p-5 transition hover:border-blue-200 hover:bg-blue-50/40"
                   >
                     <ArrowRight className="h-6 w-6 text-blue-600" />
                     <h3 className="mt-5 text-xl font-bold text-slate-900">Start Trading</h3>
@@ -309,7 +324,7 @@ const UserDashboard = ({ currentUser }) => {
 
                   <Link
                     to="/markets"
-                    className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:bg-blue-50/40"
+                    className="rounded-2xl border border-blue-100 p-5 transition hover:border-blue-200 hover:bg-blue-50/40"
                   >
                     <TrendingUp className="h-6 w-6 text-blue-600" />
                     <h3 className="mt-5 text-xl font-bold text-slate-900">View Markets</h3>
@@ -320,7 +335,11 @@ const UserDashboard = ({ currentUser }) => {
                 </div>
               </section>
 
-              <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <section className="relative mt-8 overflow-hidden rounded-3xl border border-blue-100 bg-white p-5 shadow-sm shadow-blue-100/40 sm:p-6">
+                <div
+                  className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-blue-200/90 to-transparent"
+                  aria-hidden
+                />
                 <h2 className="text-2xl font-black tracking-tight text-slate-900">
                   Top Cryptocurrencies
                 </h2>
