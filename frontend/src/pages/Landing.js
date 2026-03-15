@@ -16,7 +16,7 @@ const Landing = () => {
       src="/logo.png"
       alt="MIC Trades"
       style={{
-        transform: "scale(1.8)",
+        transform: "scale(2.8)",
         objectFit: "contain"
       }}
       className="w-full h-full"
