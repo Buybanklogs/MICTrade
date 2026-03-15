@@ -128,7 +128,8 @@ const P2PTrade = () => {
             <ChevronLeft className="w-4 h-4 mr-1" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900">P2P Crypto Trading</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Exchange</h1>
+    <p className="text-slate-600">Trade cryptocurrencies</p>
         </div>
 
         {!tradeResult ? (
