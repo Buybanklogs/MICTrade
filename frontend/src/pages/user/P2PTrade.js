@@ -6,7 +6,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { toast } from 'sonner';
-import { rates, trades, user } from '../../lib/api';
+import { rates, trades, user } from '../../lib/api';f
 
 const ALL_CRYPTOS = [
   { symbol: 'BTC', name: 'Bitcoin', logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png?1547033579' },
@@ -313,7 +313,7 @@ const P2PTrade = () => {
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <p className="text-yellow-800 text-sm">Your trade is pending confirmation. Admin will verify and complete the transaction.</p>
+              <p className="text-yellow-800 text-sm">Your trade is pending confirmation.. </p>
             </div>
 
             <Button onClick={() => { setTradeResult(null); setAmount(''); setWalletAddress(''); setSelectedBankAccount(null); }} variant="outline" className="w-full h-12">
