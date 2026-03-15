@@ -216,7 +216,7 @@ const UserDashboard = ({ currentUser }) => {
               aria-hidden
               style={{
                 background:
-                  'linear-gradient(180deg, rgba(5,16,45,0.46) 0%, rgba(5,16,45,0.1) 24%, rgba(5,16,45,0.08) 74%, rgba(5,16,45,0.5) 100%), linear-gradient(90deg, rgba(37,99,235,0) 0%, rgba(37,99,235,0.12) 16%, rgba(37,99,235,0.34) 38%, rgba(37,99,235,0.54) 50%, rgba(37,99,235,0.34) 62%, rgba(37,99,235,0.12) 84%, rgba(37,99,235,0) 100%), linear-gradient(135deg, #081a44 0%, #2563eb 50%, #0a1f52 100%)',
+                  'linear-gradient(180deg, rgba(5,16,45,0.46) 0%, rgba(5,16,45,0.1) 24%, rgba(5,16,45,0.08) 74%, rgba(5,16,45,0.5) 100%), linear-gradient(90deg, rgba(37,99,235,0) 0%, rgba(37,99,235,0.1) 16%, rgba(37,99,235,0.3) 38%, rgba(37,99,235,0.49) 50%, rgba(37,99,235,0.3) 62%, rgba(37,99,235,0.1) 84%, rgba(37,99,235,0) 100%), linear-gradient(135deg, #081a44 0%, #2563eb 50%, #0a1f52 100%)',
               }}
             />
 
