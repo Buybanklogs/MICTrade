@@ -215,23 +215,23 @@ const UserDashboard = ({ currentUser }) => {
             </div>
           ) : (
             <>
-              <section className="mt-8 grid gap-4 md:grid-cols-3">
+              <section className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
                 {statCards.map((card) => {
                   const Icon = card.icon;
                   return (
                     <div
                       key={card.title}
-                      className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:rounded-3xl sm:p-5 md:p-6"
                     >
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-sm font-medium text-slate-500">{card.title}</p>
-                          <p className="mt-3 text-3xl font-black tracking-tight text-slate-900">
+                          <p className="text-xs font-semibold text-slate-500 sm:text-sm">{card.title}</p>
+                          <p className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:mt-3 sm:text-3xl">
                             {card.value}
                           </p>
                         </div>
 
-                        <div className={`rounded-2xl bg-gradient-to-br ${card.accent} p-3 text-white shadow-lg`}>
+                        <div className={`rounded-2xl bg-gradient-to-br ${card.accent} p-2.5 text-white shadow-lg sm:p-3`}>
                           <Icon className="h-5 w-5" />
                         </div>
                       </div>
@@ -279,24 +279,24 @@ const UserDashboard = ({ currentUser }) => {
                   Live market prices and 24h movement.
                 </p>
 
-                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
                   {topCryptos.map((crypto) => {
                     const isPositive = Number(crypto.price_change_percentage_24h || 0) >= 0;
 
                     return (
                       <div
                         key={crypto.id}
-                        className="rounded-3xl border border-slate-200 bg-slate-50 p-5 transition hover:border-blue-200 hover:bg-white hover:shadow-sm"
+                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200 hover:bg-white hover:shadow-sm sm:rounded-3xl sm:p-5"
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-3">
+                        <div className="flex items-start justify-between gap-2 sm:gap-3">
+                          <div className="flex items-center gap-2 sm:gap-3">
                             <img
                               src={crypto.image}
                               alt={crypto.symbol}
-                              className="h-11 w-11 rounded-full object-cover"
+                              className="h-9 w-9 rounded-full object-cover sm:h-11 sm:w-11"
                             />
                             <div>
-                              <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900">
+                              <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 sm:text-2xl">
                                 {crypto.symbol}
                               </h3>
                               <p className="text-sm text-slate-500">{crypto.name}</p>
@@ -304,7 +304,7 @@ const UserDashboard = ({ currentUser }) => {
                           </div>
 
                           <span
-                            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold sm:px-3 sm:py-1 sm:text-sm ${
                               isPositive
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : 'bg-rose-100 text-rose-700'
@@ -315,7 +315,7 @@ const UserDashboard = ({ currentUser }) => {
                           </span>
                         </div>
 
-                        <div className="mt-6 space-y-3 text-sm">
+                        <div className="mt-4 space-y-2 text-sm sm:mt-6 sm:space-y-3">
                           <div className="flex items-center justify-between gap-3">
                             <span className="text-slate-500">Price</span>
                             <span className="font-bold text-slate-900">
@@ -333,7 +333,7 @@ const UserDashboard = ({ currentUser }) => {
 
                         <Link
                           to="/trade"
-                          className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-blue-600 transition hover:text-blue-700"
+                          className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 transition hover:text-blue-700 sm:mt-6"
                         >
                           Trade
                           <ArrowRight className="h-4 w-4" />
