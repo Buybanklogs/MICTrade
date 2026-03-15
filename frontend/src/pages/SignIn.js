@@ -41,7 +41,7 @@ const SignIn = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" aria-label="Back to home" className="mb-6 flex justify-center">
+          <Link to="/" aria-label="Back to home" className="mt-6 mb-4 flex justify-center">
             <img
               src="/logo.png"
               alt="MIC Trades logo"
