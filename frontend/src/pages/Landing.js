@@ -8,18 +8,10 @@ const Landing = () => {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_10px_24px_-18px_rgba(37,99,235,0.6)] sm:h-12 sm:w-12">
-              <img
-                src="/logo.png"
-                alt="MIC Trades"
-                className="h-full w-full max-w-none scale-[1.22] object-cover object-center -translate-y-1"
-              />
-            </div>
-            <span className="whitespace-nowrap text-lg font-semibold leading-none tracking-[-0.03em] text-slate-900 sm:text-[1.35rem]">
-              MIC Trades
-            </span>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
+            <span className="text-xl font-bold text-slate-900">MIC Trades</span>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-slate-600 hover:text-blue-600 transition">Features</a>
@@ -78,7 +70,7 @@ const Landing = () => {
             <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-8 shadow-2xl">
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
                 <div className="text-white/80 text-sm mb-2">Current Rate</div>
-                <div className="text-3xl font-bold text-white mb-4">â‚¦45,000,000</div>
+                <div className="text-3xl font-bold text-white mb-4">₦45,000,000</div>
                 <div className="text-white/60 text-sm">1 BTC</div>
               </div>
             </div>
@@ -128,7 +120,7 @@ const Landing = () => {
               <div className="text-slate-400">Trades Completed</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-blue-400 mb-2">â‚¦75B+</div>
+              <div className="text-4xl font-bold text-blue-400 mb-2">₦75B+</div>
               <div className="text-slate-400">Trading Volume</div>
             </div>
             <div>
@@ -159,7 +151,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="max-w-7xl mx-auto px-6 text-center text-slate-600">
-          <p>Â© 2025 MIC Trades. All rights reserved.</p>
+          <p>© 2025 MIC Trades. All rights reserved.</p>
         </div>
       </footer>
     </div>
