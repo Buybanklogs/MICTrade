@@ -210,13 +210,13 @@ const UserDashboard = ({ currentUser }) => {
               100% { transform: translate3d(-4px,6px,0) scale(0.95); opacity: 0.35; }
             }
           `}</style>
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 px-6 py-8 text-white shadow-2xl sm:px-8">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0b1f3e] px-6 py-8 text-white shadow-2xl sm:px-8">
             <div
               className="absolute inset-0 opacity-90"
               aria-hidden
               style={{
                 background:
-                  'radial-gradient(circle at 25% 30%, rgba(96,165,250,0.22), transparent 45%), radial-gradient(circle at 70% 20%, rgba(59,130,246,0.18), transparent 38%), radial-gradient(circle at 60% 70%, rgba(59,130,246,0.12), transparent 45%), linear-gradient(120deg, #0f172a 0%, #0c2450 45%, #0a1d3f 100%)',
+                  'linear-gradient(140deg, #0b1934 0%, #0c2f68 45%, #0a1f45 100%), linear-gradient(90deg, rgba(59,130,246,0) 0%, rgba(59,130,246,0.18) 42%, rgba(96,165,250,0.32) 50%, rgba(59,130,246,0.18) 58%, rgba(59,130,246,0) 100%)',
               }}
             />
 
@@ -232,7 +232,7 @@ const UserDashboard = ({ currentUser }) => {
                     height: p.size,
                     animation: 'float-slow 16s ease-in-out infinite',
                     animationDelay: p.delay,
-                    opacity: 0.4,
+                    opacity: 0.2,
                   }}
                 />
               ))}
