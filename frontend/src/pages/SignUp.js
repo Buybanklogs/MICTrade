@@ -40,9 +40,12 @@ const SignUp = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center p-6">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-            <img src="/logo.png" alt="MIC Trades" className="h-12 w-auto" />
-            <span className="text-2xl font-bold text-slate-900">MIC Trades</span>
+          <Link to="/" aria-label="Back to home" className="mt-6 mb-4 flex justify-center">
+            <img
+              src="/logo.png"
+              alt="MIC Trades logo"
+              className="h-auto w-[180px] max-w-full object-contain sm:w-[200px]"
+            />
           </Link>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Create Account</h1>
           <p className="text-slate-600">Join us and start trading crypto</p>
