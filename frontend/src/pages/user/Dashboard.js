@@ -210,13 +210,13 @@ const UserDashboard = ({ currentUser }) => {
               100% { transform: translate3d(-4px,6px,0) scale(0.95); opacity: 0.35; }
             }
           `}</style>
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0b1f3e] px-6 py-8 text-white shadow-2xl sm:px-8">
+          <div className="relative overflow-hidden rounded-3xl border border-white/12 bg-[#081a44] px-6 py-8 text-white shadow-2xl sm:px-8">
             <div
               className="absolute inset-0 opacity-90"
               aria-hidden
               style={{
                 background:
-                  'linear-gradient(140deg, #0b1934 0%, #0c2f68 45%, #0a1f45 100%), linear-gradient(90deg, rgba(59,130,246,0) 0%, rgba(59,130,246,0.18) 42%, rgba(96,165,250,0.32) 50%, rgba(59,130,246,0.18) 58%, rgba(59,130,246,0) 100%)',
+                  'linear-gradient(180deg, rgba(5,16,45,0.42) 0%, rgba(5,16,45,0.08) 24%, rgba(5,16,45,0.06) 74%, rgba(5,16,45,0.46) 100%), linear-gradient(90deg, rgba(37,99,235,0) 0%, rgba(37,99,235,0.08) 18%, rgba(37,99,235,0.3) 40%, rgba(59,130,246,0.42) 50%, rgba(37,99,235,0.3) 60%, rgba(37,99,235,0.08) 82%, rgba(37,99,235,0) 100%), linear-gradient(135deg, #081a44 0%, #0d2b63 48%, #0a1f52 100%)',
               }}
             />
 
@@ -232,7 +232,7 @@ const UserDashboard = ({ currentUser }) => {
                     height: p.size,
                     animation: 'float-slow 16s ease-in-out infinite',
                     animationDelay: p.delay,
-                    opacity: 0.2,
+                    opacity: 0.12,
                   }}
                 />
               ))}
