@@ -168,6 +168,19 @@ const UserDashboard = ({ currentUser }) => {
       <div className="flex">
         <aside className="hidden lg:flex w-60 min-h-screen flex-col border-r border-slate-200 bg-white px-5 py-8">
           <div className="mb-10">
+     <img
+      src="/logo.png"
+      alt="MIC Trades"
+      style={{
+        
+        paddingTop: "8px",
+        paddingBottom: "5px",
+        transform: "scale(2.8) ",
+        objectFit: "contain"
+      }}
+      className="w-full h-full"
+    />
+
             <div className="text-2xl font-black tracking-tight text-slate-900">MIC Trades</div>
             <p className="mt-1 text-sm text-slate-500">User Dashboard</p>
           </div>
