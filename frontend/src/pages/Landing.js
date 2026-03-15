@@ -8,10 +8,18 @@ const Landing = () => {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <img src="/logo.png" alt="MIC Trades" className="h-10 w-auto" />
-            <span className="text-xl font-bold text-slate-900">MIC Trades</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-blue-100 bg-white shadow-[0_10px_24px_-18px_rgba(37,99,235,0.6)] sm:h-12 sm:w-12">
+              <img
+                src="/logo.png"
+                alt="MIC Trades"
+                className="h-full w-full max-w-none scale-[1.4] object-cover object-center -translate-y-1"
+              />
+            </div>
+            <span className="whitespace-nowrap text-lg font-semibold leading-none tracking-[-0.03em] text-slate-900 sm:text-[1.35rem]">
+              MIC Trades
+            </span>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-slate-600 hover:text-blue-600 transition">Features</a>
@@ -151,7 +159,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="max-w-7xl mx-auto px-6 text-center text-slate-600">
-          <p>© 2025 MIC Trades. All rights reserved.</p>
+          <p>© 2026 MIC Trades. All rights reserved.</p>
         </div>
       </footer>
     </div>
