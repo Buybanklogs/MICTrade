@@ -9,16 +9,22 @@ const Landing = () => {
       {/* Header */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-         <div className="flex items-center gap-3">
-  
-  <img
-    src="/logo.png"
-    alt="MIC Trades"
-    className="h-10 w-auto md:h-12"
-  />
+        <div className="flex items-center gap-2">
 
-  <span className="text-lg md:text-xl font-semibold tracking-tight text-gray-900">
-    MIC <span className="font-bold">Trades</span>
+  <div className="overflow-hidden h-10 w-10 md:h-12 md:w-12 flex items-center justify-center">
+    <img
+      src="/logo.png"
+      alt="MIC Trades"
+      style={{
+        transform: "scale(1.8)",
+        objectFit: "contain"
+      }}
+      className="w-full h-full"
+    />
+  </div>
+
+  <span className="text-base md:text-lg font-semibold tracking-tight text-gray-900">
+    MIC Trades
   </span>
 
 </div>
