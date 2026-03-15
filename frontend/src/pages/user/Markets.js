@@ -91,22 +91,34 @@ const Markets = () => {
         </div>
 
         {globalData && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl border border-blue-200 p-6 shadow-sm">
-              <div className="text-slate-600 text-sm font-medium mb-1">Market Cap</div>
-              <div className="text-2xl font-bold text-slate-900">${(globalData.total_market_cap.usd / 1e12).toFixed(2)}T</div>
+          <div className="mb-8 rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 text-blue-600">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Market Overview</h2>
+                <p className="text-sm text-slate-500">Global cryptocurrency statistics</p>
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-white to-purple-50 rounded-2xl border border-purple-200 p-6 shadow-sm">
-              <div className="text-slate-600 text-sm font-medium mb-1">24h Volume</div>
-              <div className="text-2xl font-bold text-slate-900">${(globalData.total_volume.usd / 1e9).toFixed(2)}B</div>
-            </div>
-            <div className="bg-gradient-to-br from-white to-orange-50 rounded-2xl border border-orange-200 p-6 shadow-sm">
-              <div className="text-slate-600 text-sm font-medium mb-1">BTC Dominance</div>
-              <div className="text-2xl font-bold text-slate-900">{globalData.market_cap_percentage.btc.toFixed(1)}%</div>
-            </div>
-            <div className="bg-gradient-to-br from-white to-green-50 rounded-2xl border border-green-200 p-6 shadow-sm">
-              <div className="text-slate-600 text-sm font-medium mb-1">Active Cryptos</div>
-              <div className="text-2xl font-bold text-slate-900">{globalData.active_cryptocurrencies.toLocaleString()}</div>
+
+            <div className="grid grid-cols-2 gap-3 px-5 py-4 sm:grid-cols-2 sm:gap-4 sm:px-6 sm:py-5 md:grid-cols-4">
+              <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-white to-blue-50 p-4 sm:p-5 shadow-sm">
+                <div className="text-xs font-medium text-slate-600 sm:text-sm">Market Cap</div>
+                <div className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">${(globalData.total_market_cap.usd / 1e12).toFixed(2)}T</div>
+              </div>
+              <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-white to-purple-50 p-4 sm:p-5 shadow-sm">
+                <div className="text-xs font-medium text-slate-600 sm:text-sm">24h Volume</div>
+                <div className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">${(globalData.total_volume.usd / 1e9).toFixed(2)}B</div>
+              </div>
+              <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-white to-orange-50 p-4 sm:p-5 shadow-sm">
+                <div className="text-xs font-medium text-slate-600 sm:text-sm">BTC Dominance</div>
+                <div className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">{globalData.market_cap_percentage.btc.toFixed(1)}%</div>
+              </div>
+              <div className="rounded-2xl border border-green-200 bg-gradient-to-br from-white to-green-50 p-4 sm:p-5 shadow-sm">
+                <div className="text-xs font-medium text-slate-600 sm:text-sm">Active Cryptos</div>
+                <div className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">{globalData.active_cryptocurrencies.toLocaleString()}</div>
+              </div>
             </div>
           </div>
         )}
