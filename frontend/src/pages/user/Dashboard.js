@@ -288,23 +288,23 @@ const UserDashboard = ({ currentUser }) => {
                         key={crypto.id}
                         className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 transition hover:border-blue-200 hover:bg-white hover:shadow-sm sm:rounded-3xl sm:p-4 md:p-5"
                       >
-                        <div className="flex items-start justify-between gap-1.5 sm:gap-3">
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-start justify-between gap-1 sm:gap-2.5">
+                          <div className="flex items-center gap-1.5">
                             <img
                               src={crypto.image}
                               alt={crypto.symbol}
                               className="h-8 w-8 rounded-full object-cover sm:h-10 sm:w-10"
                             />
                             <div>
-                              <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 sm:text-xl">
+                              <h3 className="text-base font-black uppercase tracking-tight text-slate-900 sm:text-lg">
                                 {crypto.symbol}
                               </h3>
-                              <p className="text-xs text-slate-500 sm:text-sm">{crypto.name}</p>
+                              <p className="text-[11px] text-slate-500 sm:text-xs">{crypto.name}</p>
                             </div>
                           </div>
 
                           <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold sm:px-2.5 sm:py-0.5 sm:text-xs md:px-3 md:py-1 md:text-sm ${
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold sm:px-2.5 sm:py-0.5 sm:text-[11px] md:px-3 md:py-1 md:text-xs ${
                               isPositive
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : 'bg-rose-100 text-rose-700'
@@ -315,15 +315,15 @@ const UserDashboard = ({ currentUser }) => {
                           </span>
                         </div>
 
-                        <div className="mt-3 space-y-2 text-[13px] sm:mt-5 sm:space-y-2.5 sm:text-sm">
-                          <div className="flex items-center justify-between gap-3">
+                        <div className="mt-2.5 space-y-1.5 text-[12px] sm:mt-4 sm:space-y-2 sm:text-[13px] md:text-sm">
+                          <div className="flex items-center justify-between gap-2.5">
                             <span className="text-slate-500">Price</span>
                             <span className="font-semibold text-slate-900">
                               {formatCurrency(crypto.current_price)}
                             </span>
                           </div>
 
-                          <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center justify-between gap-2.5">
                             <span className="text-slate-500">Market Cap</span>
                             <span className="font-semibold text-slate-900">
                               {formatCurrency(crypto.market_cap)}
@@ -333,10 +333,10 @@ const UserDashboard = ({ currentUser }) => {
 
                         <Link
                           to="/trade"
-                          className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 transition hover:text-blue-700 sm:mt-5 sm:text-sm sm:gap-2"
+                          className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-blue-600 transition hover:text-blue-700 sm:mt-4 sm:text-xs sm:gap-2 md:text-sm"
                         >
                           Trade
-                          <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4" />
                         </Link>
                       </div>
                     );
